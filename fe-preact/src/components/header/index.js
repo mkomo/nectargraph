@@ -6,11 +6,11 @@ export default class Header extends Component {
 	render() {
 		return (
 			<header class={style.header}>
-				<h1>Preact App</h1>
+				<h1>Lapper</h1>
 				<nav>
-					<Link href="/">Home</Link>
-					<Link href="/profile">Me</Link>
-					<Link href="/profile/taco">Taco</Link>
+					<Link href="/">New Workout</Link>
+					<Link href="/athlete">Athletes</Link>
+					<Link href="/workout">Workouts</Link>
 				</nav>
 			</header>
 		);

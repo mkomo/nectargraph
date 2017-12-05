@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import style from './style.less';
 
-export default class Profile extends Component {
+export default class Workout extends Component {
 	state = {
 		count: 0
 	};
@@ -31,11 +31,11 @@ export default class Profile extends Component {
 	render({ user }, { time, count }) {
 		return (
 			<div class={style.profile}>
-				<h1>Profile: {user}</h1>
+				<h1>Workout: {user}</h1>
 				<p>This is the user profile for a user named {user}.</p>
 
 				<div>Current time: {time}</div>
-				<div>Profile route mounted {count} times.</div>
+				<div>Workout route mounted {count} times.</div>
 			</div>
 		);
 	}

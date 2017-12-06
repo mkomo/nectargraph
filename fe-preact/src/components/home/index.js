@@ -5,21 +5,22 @@ export default class Home extends Component {
 
 	state = {
 		startTimeMillis: null,
-		time: null
+		currentTime: null,
+		pauseTicks: [],
+		athletes: []
 	};
 
 	constructor(props) {
 		super(props);
+
+		//button action setup
 		this.handleStartClick = this.handleStartClick.bind(this);
-		this.timeFormat = new Intl.NumberFormat('en-US', {
-			maximumFractionDigits: 2,
-			minimumFractionDigits: 2,
-		});
+
+		//time format setup
 		var fracFormat = new Intl.NumberFormat('en-US', {
 			maximumFractionDigits: 0,
-			minimumIntegerDigits: 2,
+			minimumIntegerDigits: 2
 		});
-
 		var timeFormat1 = new Intl.DateTimeFormat('en-US', {
 			hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
 			timeZone: 'UTC'
@@ -37,7 +38,7 @@ export default class Home extends Component {
 	// update the current time
 	updateTime = () => {
 		let time = new Date().toLocaleString();
-		this.setState({ time: time });
+		this.setState({ currentTime: time });
 	};
 
 	// gets called when this route is navigated to
@@ -55,7 +56,7 @@ export default class Home extends Component {
 	render() {
 		let clockReading = 'waiting...';
 		let buttonText = 'Start';
-	  let startTimeText = '';
+	  let startTimeText = null;
 		if (this.state.startTimeMillis != null) {
 			clockReading = this.timerFormat(
 				(new Date().getTime() - this.state.startTimeMillis)
@@ -68,11 +69,10 @@ export default class Home extends Component {
 			}
 			buttonText = 'Restart';
 		}
-		//TODO if there is a better way to do onClick, do that
 		return (
 			<div class={style.home}>
-				<h1>{startTimeText}</h1>
-				<h1>Curr time: {this.state.time}</h1>
+				{startTimeText ? <h1>{startTimeText}</h1> : ''}
+				<h1>Curr time: {this.state.currentTime}</h1>
 				<div class={style.clock}>{clockReading}</div>
 				<div><button onClick={this.handleStartClick}>{buttonText}</button></div>
 			</div>
@@ -80,7 +80,7 @@ export default class Home extends Component {
 
 		/**
 		TODO
-		figure out best practice for events
+		x figure out best practice for events
 		add "are you sure" to Restart
 		add pause and stop button? essentially mimic functionality of timex ironman
 		add useradd - user table which includes an icon/name column, a current lap time
@@ -95,6 +95,7 @@ export default class Home extends Component {
 		add user column for undo last split
 		style - https://github.com/reactstrap/reactstrap
 		button to toggle lock scroll for maximizing space taken up by users (squares vs rows?)
+		use local storage for offline immediate backup
 		*/
 	}
 }

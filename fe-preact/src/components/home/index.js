@@ -3,6 +3,39 @@ import style from './style.less';
 import { Button, Table } from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 
+
+var formatDuration = (function() {
+	var HOUR_FORMAT_MIN = 1 * 60 * 60 * 1000;
+	var MILLIS_IN_DAY = 24 * 60 * 60 * 1000;
+	//time format setup
+	var fracFormat = new Intl.NumberFormat('en-US', {
+		maximumFractionDigits: 0,
+		minimumIntegerDigits: 2
+	});
+	var timeFormatHour = new Intl.DateTimeFormat('en-US', {
+		hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
+		timeZone: 'UTC'
+	});
+	var timeFormatMin = new Intl.DateTimeFormat('en-US', {
+		minute: 'numeric', second: 'numeric', hour12: false,
+		timeZone: 'UTC'
+	});
+	return function(millis, alwaysIncludeFrac = false) {
+		let d = new Date(millis);
+		var hundredths = Math.floor(millis / 10) % 100;
+		if (millis > MILLIS_IN_DAY) {
+			var days = Math.floor(millis / MILLIS_IN_DAY);
+			return days + 'd ' + timeFormatHour.format(d) +
+					(alwaysIncludeFrac ? ('.' + fracFormat.format(hundredths)) : '');
+		} else if (millis > HOUR_FORMAT_MIN) {
+			return timeFormatHour.format(d) +
+					(alwaysIncludeFrac ? ('.' + fracFormat.format(hundredths)) : '');
+		} else {
+			return timeFormatMin.format(d) + '.' + fracFormat.format(hundredths);
+		}
+	};
+})();
+
 class AthleteSplit {
 	constructor(workout, athlete, bibNumber) {
 		this.workout = workout;
@@ -10,29 +43,6 @@ class AthleteSplit {
 		this.bibNumber = bibNumber;
 		this.athlete = athlete;
 		this.splits = [];
-		this.formatDuration = (function() {
-			//time format setup
-			var fracFormat = new Intl.NumberFormat('en-US', {
-				maximumFractionDigits: 0,
-				minimumIntegerDigits: 2
-			});
-			var timeFormatHour = new Intl.DateTimeFormat('en-US', {
-				hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
-				timeZone: 'UTC'
-			});
-			var timeFormatMin = new Intl.DateTimeFormat('en-US', {
-				minute: 'numeric', second: 'numeric', hour12: false,
-				timeZone: 'UTC'
-			});
-			return function(millis) {
-				let d = new Date(millis);
-				var hundredths = Math.floor(millis / 10) % 100;
-				return (millis > this.HOUR_FORMAT_MIN
-						? timeFormatHour.format(d)
-						: timeFormatMin.format(d))
-						+ '.' + fracFormat.format(hundredths);
-			};
-		})();
 	}
 
 	addSplit(split) {
@@ -53,10 +63,10 @@ class AthleteSplit {
 			var splitTime = this.splits[i].timestamp - this.splits[0].timestamp
 			elts.push((
 				<td style="padding: 0 5px">
-					<a href="" onClick={(e)=>{console.log(this); e.preventDefault()}}>{this.formatDuration(lapTime)}</a>
+					<a href="" onClick={(e)=>{/*TODO*/e.preventDefault()}}>{formatDuration(lapTime)}</a>
 					<a href="" onClick={(e)=>{this.dropSplit(i); e.preventDefault()}}><sup>x</sup></a>
 					<br/>
-					<a href="" onClick={(e)=>{console.log(this); e.preventDefault()}}>{this.formatDuration(splitTime)}</a>
+					<a href="" onClick={(e)=>{e.preventDefault()}}>{formatDuration(splitTime)}</a>
 				</td>
 			));
 		}
@@ -71,8 +81,8 @@ class AthleteSplit {
 			return (
 				<table><tr>
 				<td style="padding: 0 5px">
-					{this.formatDuration(new Date().getTime() - ts)}<br/>
-					{this.formatDuration(new Date().getTime() - ts0)}
+					{formatDuration(new Date().getTime() - ts)}<br/>
+					{formatDuration(new Date().getTime() - ts0)}
 				</td>
 				</tr></table>
 			);
@@ -114,21 +124,6 @@ export default class Home extends Component {
 		this.handleStartClick = this.handleStartClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
-
-		//time format setup
-		var fracFormat = new Intl.NumberFormat('en-US', {
-			maximumFractionDigits: 0,
-			minimumIntegerDigits: 2
-		});
-		var timeFormat1 = new Intl.DateTimeFormat('en-US', {
-			hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false,
-			timeZone: 'UTC'
-		});
-		this.timerFormat = function(millis) {
-			let d = new Date(millis);
-			return timeFormat1.format(d) + '.' +
-					fracFormat.format( Math.floor(millis / 10) % 100 );
-		};
 	}
 
 	handleAthleteClick(as) {
@@ -172,6 +167,9 @@ export default class Home extends Component {
 	// gets called when this route is navigated to
 	componentDidMount() {
 		// start a timer for the clock:
+		//TODO change this to setTimeout? it seems laggy in chrome android,
+		//but maybe it's something else.
+		//https://www.thecodeship.com/web-development/alternative-to-javascript-evil-setinterval/
 		this.timer = setInterval(this.updateTime, 20);
 		this.updateTime();
 	}
@@ -186,15 +184,12 @@ export default class Home extends Component {
 		let buttonText = 'Start All';
 	  let startTimeText = null;
 		if (this.state.startSplit != null) {
-			clockReading = this.timerFormat(
-				(new Date().getTime() - this.state.startSplit.timestamp)
+			clockReading = formatDuration(
+				(new Date().getTime() - this.state.startSplit.timestamp),
+				true
 			);
 			startTimeText = 'Strt time: ' +
 					new Date(this.state.startSplit.timestamp).toLocaleString();
-			if (clockReading.length > 11) {
-				//TODO handle error state
-				console.log(clockReading);
-			}
 			buttonText = 'Restart All';
 		}
 		let userRows = this.state.athleteSplits.map(as => (
@@ -259,6 +254,13 @@ export default class Home extends Component {
 		button to toggle lock scroll for maximizing space taken up by users (squares vs rows?)
 		use local storage for offline immediate backup
 		glyphicons
+		add showplace toggle
+		add split order toggle (ascending/descending)
+		update header to use  bootstrap
+		minimize mode - show event name, elapsed time and user table, locking the
+			top part (including headers) on scroll
+		don't actually delete anything -- just mark as inactive
+		move split to another runner
 		*/
 	}
 }

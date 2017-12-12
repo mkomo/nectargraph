@@ -36,13 +36,20 @@ var formatDuration = (function() {
 	};
 })();
 
+function replacer(key, value) {
+	return (!this.hasOwnProperty('_fields') || this['_fields'].includes(key))
+			? value
+			: undefined;
+}
+
 class AthleteSplit {
-	constructor(workout, athlete, bibNumber) {
+	constructor(workout, athlete, bibNumber, displayName) {
 		this.workout = workout;
-		this.displayName = athlete.name;
-		this.bibNumber = bibNumber;
 		this.athlete = athlete;
+		this.displayName = displayName;
+		this.bibNumber = bibNumber;
 		this.splits = [];
+		this._fields = ['athlete','bibNumber','splits','displayName'];
 	}
 
 	addSplit(split) {
@@ -108,7 +115,6 @@ export default class Home extends Component {
 	state = {
 		startSplit: null,
 		currentTime: null,
-		pauseTicks: [],
 		athleteSplits: []
 	};
 
@@ -117,13 +123,29 @@ export default class Home extends Component {
 
 		//add one athlete to workout
 		this.state.athleteSplits.push(
-			new AthleteSplit(this, {name : 'Athlete 1'}, 1)
+			new AthleteSplit(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
 		);
 
 		//button action setup
 		this.handleStartClick = this.handleStartClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
+
+		this.handleDebugClick = this.handleDebugClick.bind(this);
+
+		this.state._fields = ['startSplit','athleteSplits'];
+	}
+
+	loadFromObject(o) {
+		var asArray = o.athleteSplits.map(function(as) {
+			var aso = new AthleteSplit(this, as.athlete, as.bibNumber, as.displayName);
+			aso.splits = as.splits;
+			return aso;
+		}, this);
+		this.setState({
+			startSplit: o.startSplit,
+			athleteSplits: asArray
+		});
 	}
 
 	handleAthleteClick(as) {
@@ -150,7 +172,8 @@ export default class Home extends Component {
 		var bibNumber = athleteSplits.map(a => a.bibNumber).reduce(function(a, b) {
 			return Math.max(a, b);
 		}) + 1;
-		var as = new AthleteSplit(this, {name : 'Athlete ' + bibNumber}, bibNumber);
+		//TODO create athlete object
+		var as = new AthleteSplit(this, {name : 'Athlete ' + bibNumber}, bibNumber, 'Athlete ' + bibNumber);
 		if (this.state.startSplit != null) {
 			as.addSplit(this.state.startSplit);
 		}

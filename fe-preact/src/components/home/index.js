@@ -36,13 +36,7 @@ var formatDuration = (function() {
 	};
 })();
 
-function replacer(key, value) {
-	return (!this.hasOwnProperty('_fields') || this['_fields'].includes(key))
-			? value
-			: undefined;
-}
-
-class AthleteSplit {
+class AthletePerformance {
 	constructor(workout, athlete, bibNumber, displayName) {
 		this.workout = workout;
 		this.athlete = athlete;
@@ -115,15 +109,15 @@ export default class Home extends Component {
 	state = {
 		startSplit: null,
 		currentTime: null,
-		athleteSplits: []
+		athletePerformances: []
 	};
 
 	constructor(props) {
 		super(props);
 
 		//add one athlete to workout
-		this.state.athleteSplits.push(
-			new AthleteSplit(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
+		this.state.athletePerformances.push(
+			new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
 		);
 
 		//button action setup
@@ -133,24 +127,32 @@ export default class Home extends Component {
 
 		this.handleDebugClick = this.handleDebugClick.bind(this);
 
-		this.state._fields = ['startSplit','athleteSplits'];
+		this.state._fields = ['startSplit','athletePerformances'];
 	}
 
 	loadFromObject(o) {
-		var asArray = o.athleteSplits.map(function(as) {
-			var aso = new AthleteSplit(this, as.athlete, as.bibNumber, as.displayName);
-			aso.splits = as.splits;
+		var asArray = o.athletePerformances.map(function(ap) {
+			var aso = new AthletePerformance(this, ap.athlete, ap.bibNumber, ap.displayName);
+			aso.splits = ap.splits;
 			return aso;
 		}, this);
 		this.setState({
 			startSplit: o.startSplit,
-			athleteSplits: asArray
+			athletePerformances: asArray
 		});
 	}
 
-	handleAthleteClick(as) {
+	serializeToJson(indent = null) {
+		return JSON.stringify(this.state, function(key, value) {
+			return (!this.hasOwnProperty('_fields') || this['_fields'].includes(key))
+					? value
+					: undefined;
+		}, indent);
+	}
+
+	handleAthleteClick(ap) {
 		if (this.state.startSplit != null) {
-			as.addSplit(new Split(new Date().getTime()));
+			ap.addSplit(new Split(new Date().getTime()));
 		} else {
 			//TODO rename
 		}
@@ -158,9 +160,9 @@ export default class Home extends Component {
 
 	handleStartClick(e) {
 		e.preventDefault();
-		var split = new Split(new Date().getTime());
-		this.state.athleteSplits.forEach(function(as) {
-			as.splits = [split];
+		var split = new Split(new Date().getTime());//-(23*3600*1000 + 59*60*1000 + 50*1000));
+		this.state.athletePerformances.forEach(function(ap) {
+			ap.splits = [split];
 		});
 
 		this.setState({ startSplit: split });
@@ -168,17 +170,17 @@ export default class Home extends Component {
 
 	handleAddAthlete(e) {
 		e.preventDefault();
-		var athleteSplits = this.state.athleteSplits;
-		var bibNumber = athleteSplits.map(a => a.bibNumber).reduce(function(a, b) {
+		var athletePerformances = this.state.athletePerformances;
+		var bibNumber = athletePerformances.map(a => a.bibNumber).reduce(function(a, b) {
 			return Math.max(a, b);
 		}) + 1;
 		//TODO create athlete object
-		var as = new AthleteSplit(this, {name : 'Athlete ' + bibNumber}, bibNumber, 'Athlete ' + bibNumber);
+		var ap = new AthletePerformance(this, {name : 'Athlete ' + bibNumber}, bibNumber, 'Athlete ' + bibNumber);
 		if (this.state.startSplit != null) {
-			as.addSplit(this.state.startSplit);
+			ap.addSplit(this.state.startSplit);
 		}
-		athleteSplits.push(as);
-		this.setState({ athleteSplits: athleteSplits });
+		athletePerformances.push(ap);
+		this.setState({ athletePerformances: athletePerformances });
 	}
 
 	// update the current time
@@ -215,17 +217,17 @@ export default class Home extends Component {
 					new Date(this.state.startSplit.timestamp).toLocaleString();
 			buttonText = 'Restart All';
 		}
-		let userRows = this.state.athleteSplits.map(as => (
+		let userRows = this.state.athletePerformances.map(ap => (
 			<tr>
 				<td></td>
-				<td>{as.bibNumber}</td>
+				<td>{ap.bibNumber}</td>
 				<td class="col-md-4">
 					<a class="block" href=""
-							onClick={(e)=>{this.handleAthleteClick(as); e.preventDefault()}}>
-						{as.displayName}</a></td>
-				<td>{as.currentLap}</td>
-				<td>{as.currentLapTime}</td>
-				<td class="col-md-2 small">{as.splitElements}</td>
+							onClick={(e)=>{this.handleAthleteClick(ap); e.preventDefault()}}>
+						{ap.displayName}</a></td>
+				<td>{ap.currentLap}</td>
+				<td>{ap.currentLapTime}</td>
+				<td class="col-md-2 small">{ap.splitElements}</td>
 			</tr>
 		));
 		return (
@@ -265,19 +267,19 @@ export default class Home extends Component {
 		add pause and stop button? essentially mimic functionality of timex ironman
 		x add useradd - user table which includes an icon/name column, a current lap time
 		x user click adds laps for users
+		user system (search user, reset user id, icon, name to selected user)
+		output entire state as json
 		table sortable by place
 		icon working
-		user system (search user, reset user id, icon, name to selected user)
 		save activity
 		save splits
-		output entire state as json
 		async save
 		add user column for undo last split
 		style - https://github.com/reactstrap/reactstrap
 		button to toggle lock scroll for maximizing space taken up by users (squares vs rows?)
 		use local storage for offline immediate backup
 		glyphicons
-		add showplace toggle
+		add show place column toggle
 		add split order toggle (ascending/descending)
 		update header to use  bootstrap
 		minimize mode - show event name, elapsed time and user table, locking the

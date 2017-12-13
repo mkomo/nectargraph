@@ -80,12 +80,10 @@ class AthletePerformance {
 			var ts = this.splits[this.splits.length - 1].timestamp;
 			var ts0 = this.splits[0].timestamp;
 			return (
-				<table><tr>
-				<td style="padding: 0 5px">
+				<div>
 					{formatDuration(new Date().getTime() - ts)}<br/>
 					{formatDuration(new Date().getTime() - ts0)}
-				</td>
-				</tr></table>
+				</div>
 			);
 		}
 	}
@@ -108,6 +106,7 @@ export default class Home extends Component {
 
 	state = {
 		startSplit: null,
+		endSplit: null,
 		currentTime: null,
 		athletePerformances: []
 	};
@@ -121,10 +120,10 @@ export default class Home extends Component {
 		);
 
 		//button action setup
-		this.handleStartClick = this.handleStartClick.bind(this);
+		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
-
+		this.handleResetClick = this.handleResetClick.bind(this);
 		this.handleDebugClick = this.handleDebugClick.bind(this);
 
 		this.state._fields = ['startSplit','athletePerformances'];
@@ -158,14 +157,34 @@ export default class Home extends Component {
 		}
 	}
 
-	handleStartClick(e) {
-		e.preventDefault();
-		var split = new Split(new Date().getTime());//-(23*3600*1000 + 59*60*1000 + 50*1000));
-		this.state.athletePerformances.forEach(function(ap) {
-			ap.splits = [split];
-		});
+	handleDebugClick() {
+		console.log(this.serializeToJson(2));
+	}
 
-		this.setState({ startSplit: split });
+	handleResetClick() {
+		console.log('reset');
+		if (!confirm('Are you sure you want to reset event?')) return;
+		this.state.startSplit = null;
+		this.state.endSplit = null;
+		this.state.athletePerformances.forEach(function(ap) {
+			ap.splits = [];
+		});
+	}
+
+	handleStartEndResumeClick() {
+		if (this.state.startSplit) {
+			if (this.state.endSplit) {
+				this.state.endSplit = null;
+			} else {
+				this.state.endSplit = new Split();
+			}
+		} else {
+			var split = new Split(new Date().getTime());//-(23*3600*1000 + 59*60*1000 + 50*1000));
+			this.state.athletePerformances.forEach(function(ap) {
+				ap.splits = [split];
+			});
+			this.setState({ startSplit: split });
+		}
 	}
 
 	handleAddAthlete(e) {
@@ -205,50 +224,65 @@ export default class Home extends Component {
 	}
 
 	render() {
-		let clockReading = 'waiting...';
-		let buttonText = 'Start All';
+		let clockReading = '';
+		let buttonText = 'Start Timer';
+		let buttonColor = 'secondary';
 	  let startTimeText = null;
+		let isRunning = false;
+		let isStarted = false;
 		if (this.state.startSplit != null) {
-			clockReading = formatDuration(
-				(new Date().getTime() - this.state.startSplit.timestamp),
-				true
-			);
-			startTimeText = 'Strt time: ' +
-					new Date(this.state.startSplit.timestamp).toLocaleString();
-			buttonText = 'Restart All';
+			isStarted = true;
+			startTimeText = 'started: ' + new Date(this.state.startSplit.timestamp).toLocaleString();
+			if (this.state.endSplit  != null) {
+				buttonText = 'Resume';
+			} else {
+				isRunning = true;
+				clockReading =
+						formatDuration((new Date().getTime() - this.state.startSplit.timestamp), true);
+				buttonText = 'Complete';
+			}
 		}
 		let userRows = this.state.athletePerformances.map(ap => (
 			<tr>
-				<td></td>
 				<td>{ap.bibNumber}</td>
 				<td class="col-md-4">
 					<a class="block" href=""
 							onClick={(e)=>{this.handleAthleteClick(ap); e.preventDefault()}}>
-						{ap.displayName}</a></td>
-				<td>{ap.currentLap}</td>
-				<td>{ap.currentLapTime}</td>
-				<td class="col-md-2 small">{ap.splitElements}</td>
+						{ap.displayName}</a><br/>&nbsp;</td>
+				{isStarted ? <td></td> : ''}
+				{isStarted ? <td>{ap.currentLap}</td> : ''}
+				{isRunning ? <td>{ap.currentLapTime}</td> : ''}
+				{isStarted ? <td class="col-md-2 small">{ap.splitElements}</td> : ''}
 			</tr>
 		));
 		return (
 			<div class={style.home}>
-				{startTimeText ? <h3>{startTimeText}</h3> : ''}
-				<h3>Curr time: {this.state.currentTime}</h3>
-				<div class={style.clock}>{clockReading}</div>
+				<div class='float-right text-right'>
+					{this.state.currentTime}<br/>
+					<small>{startTimeText}</small>
+					<div class={style.clock}>{clockReading}</div>
+				</div>
+				<h1>Event 1</h1>
+				{startTimeText ? <div></div> : ''}
 				<div>
-					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>
-					&nbsp;
-					<Button color="success" onClick={this.handleStartClick}>{buttonText}</Button>
+					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
+					<Button color={buttonColor} onClick={this.handleStartEndResumeClick}>{buttonText}</Button>&nbsp;
+					{
+						startTimeText
+						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
+						: ''
+					}
+					<Button color="link" onClick={this.handleDebugClick}>debug</Button>
 				</div>
 				<Table hover responsive>
 					<thead>
 						<tr>
-							<th>Place{/* Position */}</th>
-							<th>Bib{/* bib */}</th>
+							<th>&nbsp;<br/>Bib{/* bib */}</th>
 							<th class="col-md-4">User{/* avatar and user name */}</th>
-							<th>Lap #{/* what lap is this user on? */}</th>
-							<th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th>
-							<th class="col-md-2">Previous<br/>Laps/Splits{/* one column contains all laps */}</th>
+							{isStarted ? <th>Place{/* Position */}</th> : ''}
+							{isStarted ? <th>Lap #{/* what lap is this user on? */}</th> : ''}
+							{isRunning ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
+							{isStarted ? <th class="col-md-2"><span>{isRunning ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
 					</thead>
 					<tfoot>

@@ -96,7 +96,7 @@ class AthletePerformance {
 }
 
 class Split {
-	constructor(timestamp) {
+	constructor(timestamp=new Date().getTime()) {
 		this.span = 1;
 		this.timestamp = timestamp;
 	}
@@ -105,10 +105,12 @@ class Split {
 export default class Home extends Component {
 
 	state = {
+		eventName: 'Event 1',
 		startSplit: null,
 		endSplit: null,
 		currentTime: null,
-		athletePerformances: []
+		athletePerformances: [],
+		_fields: ['eventName','startSplit','endSplit','athletePerformances']
 	};
 
 	constructor(props) {
@@ -125,8 +127,6 @@ export default class Home extends Component {
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.handleResetClick = this.handleResetClick.bind(this);
 		this.handleDebugClick = this.handleDebugClick.bind(this);
-
-		this.state._fields = ['startSplit','athletePerformances'];
 	}
 
 	loadFromObject(o) {
@@ -151,7 +151,7 @@ export default class Home extends Component {
 
 	handleAthleteClick(ap) {
 		if (this.state.startSplit != null) {
-			ap.addSplit(new Split(new Date().getTime()));
+			ap.addSplit(new Split());
 		} else {
 			//TODO rename
 		}
@@ -162,7 +162,6 @@ export default class Home extends Component {
 	}
 
 	handleResetClick() {
-		console.log('reset');
 		if (!confirm('Are you sure you want to reset event?')) return;
 		this.state.startSplit = null;
 		this.state.endSplit = null;
@@ -179,7 +178,7 @@ export default class Home extends Component {
 				this.state.endSplit = new Split();
 			}
 		} else {
-			var split = new Split(new Date().getTime());//-(23*3600*1000 + 59*60*1000 + 50*1000));
+			var split = new Split();
 			this.state.athletePerformances.forEach(function(ap) {
 				ap.splits = [split];
 			});
@@ -187,8 +186,7 @@ export default class Home extends Component {
 		}
 	}
 
-	handleAddAthlete(e) {
-		e.preventDefault();
+	handleAddAthlete() {
 		var athletePerformances = this.state.athletePerformances;
 		var bibNumber = athletePerformances.map(a => a.bibNumber).reduce(function(a, b) {
 			return Math.max(a, b);
@@ -262,7 +260,7 @@ export default class Home extends Component {
 					<small>{startTimeText}</small>
 					<div class={style.clock}>{clockReading}</div>
 				</div>
-				<h1>Event 1</h1>
+				<h1>{this.state.eventName}</h1>
 				{startTimeText ? <div></div> : ''}
 				<div>
 					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
@@ -297,12 +295,12 @@ export default class Home extends Component {
 		/**
 		TODO
 		x figure out best practice for events
-		add "are you sure" to Restart
-		add pause and stop button? essentially mimic functionality of timex ironman
+		x add "are you sure" to Restart
+		x add pause and stop button? essentially mimic functionality of timex ironman
 		x add useradd - user table which includes an icon/name column, a current lap time
 		x user click adds laps for users
 		user system (search user, reset user id, icon, name to selected user)
-		output entire state as json
+		x output entire state as json
 		table sortable by place
 		icon working
 		save activity

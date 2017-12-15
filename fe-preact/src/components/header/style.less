@@ -1,45 +1,11 @@
-@import '~style/helpers';
+nav {
+	background: #EEE;
+}
 
-.header {
-	position: fixed;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 56px;
-	padding: 0;
-	background: #673AB7;
-	box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-	z-index: 50;
+nav>button {
+	background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(0, 0, 0, 0.5)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E")!important;
+}
 
-	h1 {
-		float: left;
-		margin: 0;
-		padding: 0 15px;
-		font-size: 24px;
-		line-height: 56px;
-		font-weight: 400;
-		color: #FFF;
-	}
-
-	nav {
-		float: right;
-		font-size: 100%;
-
-		a {
-			display: inline-block;
-			height: 56px;
-			line-height: 56px;
-			padding: 0 15px;
-			min-width: 50px;
-			text-align: center;
-			background: rgba(255,255,255,0);
-			text-decoration: none;
-			color: #EEE;
-			will-change: background-color;
-
-			&:hover, &:active {
-				background: rgba(255,255,255,0.3);
-			}
-		}
-	}
+nav>button::after {
+	content: "\00a0";
 }

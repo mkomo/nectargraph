@@ -20,13 +20,15 @@ export default class App extends Component {
 		return (
 			<div id="app">
 				<Header />
-				<Router onChange={this.handleRoute}>
-					<Home path="/" />
-					<Workout path="/workout/:workout_guid" />
-					<Athlete path="/athlete/:user" />
-					<List path="/athlete" />
-					<List path="/workout" />
-				</Router>
+				<div class="container-fluid">
+					<Router onChange={this.handleRoute}>
+						<Home path="/" />
+						<Workout path="/workout/:workout_guid" />
+						<Athlete path="/athlete/:user" />
+						<List path="/athlete" />
+						<List path="/workout" />
+					</Router>
+				</div>
 			</div>
 		);
 	}

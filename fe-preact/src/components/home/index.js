@@ -121,6 +121,9 @@ export default class Home extends Component {
 			new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
 		);
 
+		//TODO remove this -- for debugging
+		document.home = this;
+
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
@@ -225,7 +228,7 @@ export default class Home extends Component {
 		let clockReading = '';
 		let buttonText = 'Start Timer';
 		let buttonColor = 'secondary';
-	  let startTimeText = null;
+		let startTimeText = null;
 		let isRunning = false;
 		let isStarted = false;
 		if (this.state.startSplit != null) {
@@ -243,14 +246,14 @@ export default class Home extends Component {
 		let userRows = this.state.athletePerformances.map(ap => (
 			<tr>
 				<td>{ap.bibNumber}</td>
-				<td class="col-md-4">
+				<td>
 					<a class="block" href=""
 							onClick={(e)=>{this.handleAthleteClick(ap); e.preventDefault()}}>
 						{ap.displayName}</a><br/>&nbsp;</td>
 				{isStarted ? <td></td> : ''}
 				{isStarted ? <td>{ap.currentLap}</td> : ''}
 				{isRunning ? <td>{ap.currentLapTime}</td> : ''}
-				{isStarted ? <td class="col-md-2 small">{ap.splitElements}</td> : ''}
+				{isStarted ? <td class="small">{ap.splitElements}</td> : ''}
 			</tr>
 		));
 		return (
@@ -276,11 +279,11 @@ export default class Home extends Component {
 					<thead>
 						<tr>
 							<th>&nbsp;<br/>Bib{/* bib */}</th>
-							<th class="col-md-4">User{/* avatar and user name */}</th>
+							<th>User&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
 							{isStarted ? <th>Place{/* Position */}</th> : ''}
 							{isStarted ? <th>Lap #{/* what lap is this user on? */}</th> : ''}
 							{isRunning ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
-							{isStarted ? <th class="col-md-2"><span>{isRunning ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
+							{isStarted ? <th><span>{isRunning ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
 					</thead>
 					<tfoot>

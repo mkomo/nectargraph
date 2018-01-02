@@ -1,8 +1,8 @@
 import { h, Component } from 'preact';
 import style from './style.less';
 import { Button, Table } from 'reactstrap';
+import InlineInput from '../inline';
 import 'bootstrap/dist/css/bootstrap.css';
-
 
 var formatDuration = (function() {
 	var HOUR_FORMAT_MIN = 1 * 60 * 60 * 1000;
@@ -263,7 +263,12 @@ export default class Home extends Component {
 					<small>{startTimeText}</small>
 					<div class={style.clock}>{clockReading}</div>
 				</div>
-				<h1>{this.state.eventName}</h1>
+				<h1><InlineInput
+					value={this.state.eventName}
+					propName='eventName'
+					update={this.updateState}
+					validate={this.validateEventName}
+					/></h1>
 				{startTimeText ? <div></div> : ''}
 				<div>
 					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;

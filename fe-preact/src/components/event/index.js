@@ -102,7 +102,7 @@ class Split {
 	}
 }
 
-export default class Home extends Component {
+export default class Event extends Component {
 
 	state = {
 		eventName: 'Event 1',
@@ -122,7 +122,7 @@ export default class Home extends Component {
 		);
 
 		//TODO remove this -- for debugging
-		document.home = this;
+		document.event = this;
 
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
@@ -263,7 +263,7 @@ export default class Home extends Component {
 			</tr>
 		));
 		return (
-			<div class={style.home}>
+			<div class={style.event}>
 				<div class='float-right text-right'>
 					{this.state.currentTime}<br/>
 					<small>{startTimeText}</small>

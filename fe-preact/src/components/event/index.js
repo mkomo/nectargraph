@@ -2,69 +2,11 @@ import { h, Component } from 'preact';
 import style from './style.less';
 import { Button, Table } from 'reactstrap';
 import InlineInput from '../inline';
-import Util from '../util'
+import AthletePerformance from '../performance'
 import 'bootstrap/dist/css/bootstrap.css';
+import Util from '../util'
 
 var util = new Util();
-
-class AthletePerformance {
-	constructor(workout, athlete, bibNumber, displayName) {
-		this.workout = workout;
-		this.athlete = athlete;
-		this.displayName = displayName;
-		this.bibNumber = bibNumber;
-		this.splits = [];
-		this._fields = ['athlete','bibNumber','splits','displayName'];
-	}
-
-	addSplit(split) {
-		this.splits.push(split);
-	}
-
-	get currentLap() {
-		//TODO consider split spans
-		return this.splits.length;
-	}
-
-	get splitElements() {
-		var elts = [];
-		for (let i = 0; i < this.splits.length; i++) {
-			var lapTime = this.splits[i].timestamp - (i == 0
-						? this.workout.state.startSplit.timestamp
-						: this.splits[i-1].timestamp);
-			var splitTime = this.splits[i].timestamp - this.splits[0].timestamp
-			elts.push((
-				<td style="padding: 0 5px">
-					<a href="" onClick={(e)=>{/*TODO*/e.preventDefault()}}>{util.formatDuration(lapTime)}</a>
-					<a href="" onClick={(e)=>{this.dropSplit(i); e.preventDefault()}}><sup>x</sup></a>
-					<br/>
-					<a href="" onClick={(e)=>{e.preventDefault()}}>{util.formatDuration(splitTime)}</a>
-				</td>
-			));
-		}
-		return (<table><tr>{elts}</tr></table>);
-	}
-
-	get currentLapTime() {
-		//TODO consider split spans
-		if (this.splits.length > 0) {
-			var ts = this.splits[this.splits.length - 1].timestamp;
-			var ts0 = this.splits[0].timestamp;
-			return (
-				<div>
-					{util.formatDuration(new Date().getTime() - ts)}<br/>
-					{util.formatDuration(new Date().getTime() - ts0)}
-				</div>
-			);
-		}
-	}
-
-	dropSplit(index) {
-		var s = this.splits.slice();
-		s.splice(index, 1);
-		this.splits = s;
-	}
-}
 
 class Split {
 	constructor(timestamp=new Date().getTime()) {
@@ -86,7 +28,6 @@ export default class Event extends Component {
 
 	constructor(props) {
 		super(props);
-
 		//add one athlete to workout
 		this.state.athletePerformances.push(
 			new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
@@ -182,8 +123,16 @@ export default class Event extends Component {
 		this.setState({ currentTime: time });
 	};
 
-	updateState(state) {
-		this.setState(state);
+	updateState(changes) {
+		this.setState(changes);
+	}
+
+	isStarted() {
+		return this.state.startSplit != null;
+	}
+
+	isRunning() {
+		return this.state.startSplit != null && this.state.endSplit == null;
 	}
 
 	// gets called when this route is navigated to
@@ -206,33 +155,16 @@ export default class Event extends Component {
 		let buttonText = 'Start Timer';
 		let buttonColor = 'secondary';
 		let startTimeText = null;
-		let isRunning = false;
-		let isStarted = false;
-		if (this.state.startSplit != null) {
-			isStarted = true;
+		if (this.isStarted()) {
 			startTimeText = 'started: ' + new Date(this.state.startSplit.timestamp).toLocaleString();
-			if (this.state.endSplit  != null) {
+			if (!this.isRunning()) {
 				buttonText = 'Resume';
 			} else {
-				isRunning = true;
 				clockReading =
 						util.formatDuration((new Date().getTime() - this.state.startSplit.timestamp), true);
 				buttonText = 'Complete';
 			}
 		}
-		let userRows = this.state.athletePerformances.map(ap => (
-			<tr>
-				<td>{ap.bibNumber}</td>
-				<td>
-					<a class="block" href=""
-							onClick={(e)=>{this.handleAthleteClick(ap); e.preventDefault()}}>
-						{ap.displayName}</a><br/>&nbsp;</td>
-				{isStarted ? <td></td> : ''}
-				{isStarted ? <td>{ap.currentLap}</td> : ''}
-				{isRunning ? <td>{ap.currentLapTime}</td> : ''}
-				{isStarted ? <td class="small">{ap.splitElements}</td> : ''}
-			</tr>
-		));
 		return (
 			<div class={style.event}>
 				<div class='float-right text-right'>
@@ -262,16 +194,16 @@ export default class Event extends Component {
 						<tr>
 							<th>&nbsp;<br/>Bib{/* bib */}</th>
 							<th>User&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
-							{isStarted ? <th>Place{/* Position */}</th> : ''}
-							{isStarted ? <th>Lap #{/* what lap is this user on? */}</th> : ''}
-							{isRunning ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
-							{isStarted ? <th><span>{isRunning ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
+							{this.isStarted() ? <th>Place{/* Position */}</th> : ''}
+							{this.isStarted() ? <th>Lap #{/* what lap is this user on? */}</th> : ''}
+							{this.isRunning() ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
+							{this.isStarted() ? <th><span>{this.isRunning() ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
 					</thead>
 					<tfoot>
 					</tfoot>
 					<tbody>
-						{userRows}
+						{this.state.athletePerformances.map(p=>p.render())}
 					</tbody>
 				</Table>
 			</div>

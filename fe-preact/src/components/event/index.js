@@ -2,9 +2,9 @@ import { h, Component } from 'preact';
 import style from './style.less';
 import { Button, Table } from 'reactstrap';
 import InlineInput from '../inline';
-import AthletePerformance from '../performance'
+import AthletePerformance from '../performance';
 import 'bootstrap/dist/css/bootstrap.css';
-import Util from '../util'
+import Util from '../util';
 
 var util = new Util();
 

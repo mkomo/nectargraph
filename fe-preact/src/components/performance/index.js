@@ -1,5 +1,6 @@
 import { h, Component } from 'preact';
-import Util from '../util'
+import Util from '../util';
+import InlineInput from '../inline';
 
 var util = new Util();
 
@@ -12,6 +13,9 @@ export default class AthletePerformance extends Component {
 		this.bibNumber = bibNumber;
 		this.splits = [];
 		this._fields = ['athlete','bibNumber','splits','displayName'];
+
+
+		this.updateBib = this.updateBib.bind(this);
 	}
 
 	addSplit(split) {
@@ -62,11 +66,18 @@ export default class AthletePerformance extends Component {
 		this.splits = s;
 	}
 
+	updateBib(b) {
+		this.bibNumber = b;
+	}
+
 	render() {
 		let w = this.workout;
 		return (
 			<tr>
-				<td>{this.bibNumber}</td>
+				<td><InlineInput
+					value={this.bibNumber}
+					onChange={this.updateBib}
+					/></td>
 				<td>
 					<a class="block" href=""
 							onClick={(e)=>{w.handleAthleteClick(this); e.preventDefault()}}>

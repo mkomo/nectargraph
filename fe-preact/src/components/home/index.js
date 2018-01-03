@@ -130,6 +130,8 @@ export default class Home extends Component {
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.handleResetClick = this.handleResetClick.bind(this);
 		this.handleDebugClick = this.handleDebugClick.bind(this);
+		this.updateState = this.updateState.bind(this);
+
 	}
 
 	loadFromObject(o) {
@@ -209,6 +211,10 @@ export default class Home extends Component {
 		this.setState({ currentTime: time });
 	};
 
+	updateState(state) {
+		this.setState(state);
+	}
+
 	// gets called when this route is navigated to
 	componentDidMount() {
 		// start a timer for the clock:
@@ -266,7 +272,7 @@ export default class Home extends Component {
 				<h1><InlineInput
 					value={this.state.eventName}
 					propName='eventName'
-					update={this.updateState}
+					onChange={this.updateState}
 					validate={this.validateEventName}
 					/></h1>
 				{startTimeText ? <div></div> : ''}

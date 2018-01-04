@@ -1,6 +1,7 @@
 import { h, Component } from 'preact';
 import Util from '../util';
 import InlineInput from '../inline';
+import style from './style.less';
 
 var util = new Util();
 
@@ -14,8 +15,8 @@ export default class AthletePerformance extends Component {
 		this.splits = [];
 		this._fields = ['athlete','bibNumber','splits','displayName'];
 
-
 		this.updateBib = this.updateBib.bind(this);
+		this.updateName = this.updateName.bind(this);
 	}
 
 	addSplit(split) {
@@ -70,20 +71,32 @@ export default class AthletePerformance extends Component {
 		this.bibNumber = b;
 	}
 
+	updateName(name) {
+		this.displayName = name;
+	}
+
 	render() {
 		let w = this.workout;
+		var classes = `${style.user_cell} ${style.vcenter}`;
+		if (w.isRunning()) {
+			classes += ` ${style.user_link}`
+		}
 		return (
 			<tr>
-				<td><InlineInput
+				<td class={style.vcenter}><InlineInput
 					value={this.bibNumber}
 					onChange={this.updateBib}
+					width="3em"
 					/></td>
-				<td>
-					<a class="block" href=""
-							onClick={(e)=>{w.handleAthleteClick(this); e.preventDefault()}}>
-						{this.displayName}</a><br/>&nbsp;</td>
-				{w.isStarted() ? <td></td> : ''}
-				{w.isStarted() ? <td>{this.currentLap}</td> : ''}
+				<td class={classes} onClick={(e)=>{w.handleAthleteClick(this); e.preventDefault()}}>
+					<InlineInput
+						value={this.displayName}
+						onChange={this.updateName}
+						width="15em"
+						/>
+				</td>
+				{w.isStarted() ? <td class={style.vcenter}></td> : ''}
+				{w.isStarted() ? <td class={style.vcenter}>{this.currentLap}</td> : ''}
 				{w.isRunning() ? <td>{this.currentLapTime}</td> : ''}
 				{w.isStarted() ? <td class="small">{this.splitElements}</td> : ''}
 			</tr>

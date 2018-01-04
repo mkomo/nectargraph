@@ -177,6 +177,7 @@ export default class Event extends Component {
 					propName='eventName'
 					onChange={this.updateState}
 					validate={this.validateEventName}
+					width="10em"
 					/></h1>
 				{startTimeText ? <div></div> : ''}
 				<div>

@@ -1,8 +1,15 @@
 import { h, Component } from 'preact';
+import style from './style.less';
 
 //TODO actually implement this stuff
 export default class InlineInput extends Component {
 
+	/*
+	TODO
+	handle escape press
+	optional draw edit button
+	mutually cancel if more than one is open?
+	 */
 	state = {};
 
 	constructor(props) {
@@ -12,14 +19,21 @@ export default class InlineInput extends Component {
 			propName: props.propName,
 			onChange: props.onChange,
 			validate: props.validate,
+			width: props.width,
 			inEdit: false
 		};
 	    this.setEditState = this.setEditState.bind(this);
 	    this.handleChange = this.handleChange.bind(this);
 	    this.handleSubmit = this.handleSubmit.bind(this);
 	}
-
+	componentDidUpdate(){
+		if (this.state.inEdit) {
+			this.textInput.focus();
+		}
+	}
 	setEditState(e) {
+		event.preventDefault();
+		event.stopPropagation();
 		this.setState({inEdit : true, tempValue : this.state.value});
 	}
 	handleChange(e) {
@@ -41,16 +55,28 @@ export default class InlineInput extends Component {
 	render() {
 		return this.state.inEdit
 				? this.renderInput()
-				: (<span onClick={this.setEditState}>{this.state.value}</span>);
+				: this.renderValue()
+	}
+
+	renderValue() {
+		return (
+			<span class={style.editable}>
+				{this.state.value}
+				<i onClick={this.setEditState} class="fa fa-pencil" aria-hidden="true"></i>
+			</span>
+		);
 	}
 
 	renderInput() {
 		return (
 			<form onSubmit={this.handleSubmit}>
 				<input type="text"
+					ref={(input) => { this.textInput = input; }}
 					value={this.state.tempValue}
-					onInput={e=>this.handleChange(e)}
+					onInput={this.handleChange}
 					onBlur={this.handleSubmit}
+
+					style={this.state.width != null ? 'width:' + this.state.width : ''}
 					 />
 			</form>
 		);

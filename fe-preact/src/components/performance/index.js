@@ -23,9 +23,9 @@ export default class AthletePerformance extends Component {
 		this.splits.push(split);
 	}
 
-	get currentLap() {
+	get completedLaps() {
 		//TODO consider split spans
-		return this.splits.length;
+		return this.splits.length > 0 ? this.splits.length - 1 : '-';
 	}
 
 	get splitElements() {
@@ -96,7 +96,7 @@ export default class AthletePerformance extends Component {
 						/>
 				</td>
 				{w.isStarted() ? <td class={style.vcenter}></td> : ''}
-				{w.isStarted() ? <td class={style.vcenter}>{this.currentLap}</td> : ''}
+				{w.isStarted() ? <td class={style.vcenter}>{this.completedLaps}</td> : ''}
 				{w.isRunning() ? <td>{this.currentLapTime}</td> : ''}
 				{w.isStarted() ? <td class="small">{this.splitElements}</td> : ''}
 			</tr>

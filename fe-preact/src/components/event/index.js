@@ -194,9 +194,9 @@ export default class Event extends Component {
 					<thead>
 						<tr>
 							<th>&nbsp;<br/>Bib{/* bib */}</th>
-							<th>User&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
+							<th>Athlete&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
 							{this.isStarted() ? <th>Place{/* Position */}</th> : ''}
-							{this.isStarted() ? <th>Lap #{/* what lap is this user on? */}</th> : ''}
+							{this.isStarted() ? <th>Laps{/* what lap is this user on? */}</th> : ''}
 							{this.isRunning() ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
 							{this.isStarted() ? <th><span>{this.isRunning() ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
@@ -238,4 +238,13 @@ export default class Event extends Component {
 		move split to another runner
 		*/
 	}
+
+	/*homepage
+
+	LAPPER
+	create new standalone event/create new meet
+	active/upcoming meets/event
+	browse meets/events
+	browse Athletes
+	*/
 }

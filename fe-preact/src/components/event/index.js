@@ -231,7 +231,7 @@ export default class Event extends Component {
 		glyphicons
 		add show place column toggle
 		add split order toggle (ascending/descending)
-		update header to use  bootstrap
+		x update header to use  bootstrap
 		minimize mode - show event name, elapsed time and user table, locking the
 			top part (including headers) on scroll
 		don't actually delete anything -- just mark as inactive
@@ -239,12 +239,4 @@ export default class Event extends Component {
 		*/
 	}
 
-	/*homepage
-
-	LAPPER
-	create new standalone event/create new meet
-	active/upcoming meets/event
-	browse meets/events
-	browse Athletes
-	*/
 }

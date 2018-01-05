@@ -31,34 +31,46 @@ export default class Header extends Component {
 	}
 	render() {
 		return (
-				<Navbar light expand="md">
+				<Navbar dark expand="xs">
 					<NavbarBrand href="/">Lapper</NavbarBrand>
 					<NavbarToggler onClick={this.toggle}/>
 					<Collapse isOpen={this.state.isOpen} navbar>
 						<Nav className="ml-auto" navbar>
 							<NavItem>
-								<NavLink href="/athletes/">Athletes</NavLink>
-							</NavItem>
-							<NavItem>
-								<NavLink href="/meets/">Meets</NavLink>
+								<Link href="/event" className="nav-link">
+									<i class="fa fa-plus" aria-hidden="true"></i> event
+								</Link>
 							</NavItem>
 							<UncontrolledDropdown nav inNavbar>
-								<DropdownToggle nav caret>
-									Events
+								<DropdownToggle nav>
+									<i class="fa fa-bars" aria-hidden="true"></i>
 								</DropdownToggle>
 								<DropdownMenu right>
 									<DropdownItem>
-										Event 1
+										<Link href="/athletes">athletes</Link>
 									</DropdownItem>
 									<DropdownItem>
-										Event 2
+										<Link href="/meets">meets</Link>
+									</DropdownItem>
+									<DropdownItem>
+										<Link href="/">one-off events</Link>
 									</DropdownItem>
 									<DropdownItem divider />
 									<DropdownItem>
-										new Event
+										<Link href="/event">
+											<i class="fa fa-plus" aria-hidden="true"></i> event
+										</Link>
+									</DropdownItem>
+									<DropdownItem divider />
+									<DropdownItem>
+										<Link href="/">my account</Link>
+									</DropdownItem>
+									<DropdownItem>
+										<Link href="/">log out</Link>
 									</DropdownItem>
 								</DropdownMenu>
 							</UncontrolledDropdown>
+
 						</Nav>
 					</Collapse>
 				</Navbar>

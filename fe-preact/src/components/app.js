@@ -2,6 +2,7 @@ import { h, Component } from 'preact';
 import { Router } from 'preact-router';
 
 import Header from './header';
+import Home from './home';
 import Event from './event';
 import Athlete from './athlete';
 import Workout from './workout';
@@ -20,9 +21,10 @@ export default class App extends Component {
 		return (
 			<div id="app">
 				<Header />
-				<div class="container-fluid">
+				<div class="container-fluid app-content">
 					<Router onChange={this.handleRoute}>
-						<Event path="/" />
+						<Home path="/" />
+						<Event path="/event" />
 						<Workout path="/workout/:workout_guid" />
 						<Athlete path="/athlete/:user" />
 						<List path="/athlete" />

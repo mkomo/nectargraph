@@ -14,11 +14,10 @@
   },
   "keywords": [
     "preact",
-    "boilerplate",
-    "webpack"
+    "sports"
   ],
   "license": "UNLICENSED",
-  "author": "Jason Miller <jason@developit.ca>",
+  "author": "Matt Komorowski <matt@mkomo.com>",
   "jest": {
     "setupFiles": [
       "./test/setup.js"

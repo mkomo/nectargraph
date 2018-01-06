@@ -41,6 +41,11 @@ export default class Header extends Component {
 									<i class="fa fa-plus" aria-hidden="true"></i> event
 								</Link>
 							</NavItem>
+							<NavItem>
+								<Link href="/events/live" className="nav-link">
+									<i>live</i>
+								</Link>
+							</NavItem>
 							<UncontrolledDropdown nav inNavbar>
 								<DropdownToggle nav>
 									<i class="fa fa-bars" aria-hidden="true"></i>

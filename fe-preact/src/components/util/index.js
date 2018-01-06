@@ -6,6 +6,15 @@ export default class Util {
 			(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
 		);
 	}
+
+	serializeToJson(obj, indent = null) {
+		return JSON.stringify(obj, function(key, value) {
+			return (!this.hasOwnProperty('_fields') || this['_fields'].includes(key))
+					? value
+					: undefined;
+		}, indent);
+	}
+
 	formatDuration = (function() {
 		var HOUR_FORMAT_MIN = 1 * 60 * 60 * 1000;
 		var MILLIS_IN_DAY = 24 * 60 * 60 * 1000;

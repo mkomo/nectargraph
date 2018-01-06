@@ -5,6 +5,7 @@ import InlineInput from '../inline';
 import AthletePerformance from '../performance';
 import 'bootstrap/dist/css/bootstrap.css';
 import Util from '../util';
+import { eventModel } from '../../models/EventModel.js'
 
 var util = new Util();
 
@@ -17,21 +18,16 @@ class Split {
 
 export default class Event extends Component {
 
-	state = {
-		eventName: 'Event 1',
-		startSplit: null,
-		endSplit: null,
-		currentTime: null,
-		athletePerformances: [],
-		_fields: ['eventName','startSplit','endSplit','athletePerformances']
-	};
-
 	constructor(props) {
 		super(props);
+		this.state = eventModel.getEvent(props);
 		//add one athlete to workout
-		this.state.athletePerformances.push(
-			new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
-		);
+
+		if (this.state.athletePerformances.length == 0) {
+			this.state.athletePerformances.push(
+				new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
+			);
+		}
 
 		//TODO remove this -- for debugging
 		document.event = this;
@@ -41,7 +37,6 @@ export default class Event extends Component {
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.handleResetClick = this.handleResetClick.bind(this);
-		this.handleDebugClick = this.handleDebugClick.bind(this);
 		this.updateState = this.updateState.bind(this);
 
 	}
@@ -58,14 +53,6 @@ export default class Event extends Component {
 		});
 	}
 
-	serializeToJson(indent = null) {
-		return JSON.stringify(this.state, function(key, value) {
-			return (!this.hasOwnProperty('_fields') || this['_fields'].includes(key))
-					? value
-					: undefined;
-		}, indent);
-	}
-
 	handleAthleteClick(ap) {
 		if (this.state.startSplit != null) {
 			ap.addSplit(new Split());
@@ -74,25 +61,23 @@ export default class Event extends Component {
 		}
 	}
 
-	handleDebugClick() {
-		console.log(this.serializeToJson(2));
-	}
-
 	handleResetClick() {
 		if (!confirm('Are you sure you want to reset event?')) return;
-		this.state.startSplit = null;
-		this.state.endSplit = null;
 		this.state.athletePerformances.forEach(function(ap) {
 			ap.splits = [];
+		});
+		this.setState({
+			startSplit: null,
+			endSplit: null
 		});
 	}
 
 	handleStartEndResumeClick() {
 		if (this.state.startSplit) {
 			if (this.state.endSplit) {
-				this.state.endSplit = null;
+				this.setState({ endSplit : null});
 			} else {
-				this.state.endSplit = new Split();
+				this.setState({ endSplit : new Split()});
 			}
 		} else {
 			var split = new Split();
@@ -188,7 +173,7 @@ export default class Event extends Component {
 						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
 						: ''
 					}
-					<Button color="link" onClick={this.handleDebugClick}>debug</Button>
+					<Button color="link" onClick={e=>console.log(util.serializeToJson(this.state, 2))}>debug</Button>
 				</div>
 				<Table hover responsive>
 					<thead>

@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import style from './style.less';
 
-export default class Workout extends Component {
+export default class Meet extends Component {
 	state = {};
 
 	// Note: `user` comes from the URL, courtesy of our router

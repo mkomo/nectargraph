@@ -5,7 +5,7 @@ import Header from './header';
 import Home from './home';
 import Event from './event';
 import Athlete from './athlete';
-import Workout from './workout';
+import Meet from './meet';
 import List from './list';
 
 export default class App extends Component {
@@ -24,11 +24,17 @@ export default class App extends Component {
 				<div class="container-fluid app-content">
 					<Router onChange={this.handleRoute}>
 						<Home path="/" />
+
 						<Event path="/event" />
-						<Workout path="/workout/:workout_guid" />
-						<Athlete path="/athlete/:user" />
-						<List path="/athlete" />
-						<List path="/workout" />
+						<Meet path="/meet" />
+
+						<Athlete path="/athletes/:organization/:name" />
+						<Event path="/events/:event_guid" />
+						<Meet path="/meets/:meet_guid" />
+
+						<List path="/athletes" type={Athlete}/>
+						<List path="/events" type={Event}/>
+						<List path="/meets" type={Meet}/>
 					</Router>
 				</div>
 			</div>

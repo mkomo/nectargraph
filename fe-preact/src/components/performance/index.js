@@ -6,7 +6,7 @@ import style from './style.less';
 var util = new Util();
 
 export default class AthletePerformance extends Component {
-	constructor(workout, athlete, bibNumber, displayName) {
+	constructor(workout, athlete, bibNumber, displayName = null) {
 		super({});
 		this.workout = workout;
 		this.athlete = athlete;
@@ -90,7 +90,7 @@ export default class AthletePerformance extends Component {
 					/></td>
 				<td class={classes} onClick={(e)=>{w.handleAthleteClick(this); e.preventDefault()}}>
 					<InlineInput
-						value={this.displayName}
+						value={this.displayName ? this.displayName : this.athlete.state.name}
 						onChange={this.updateName}
 						width="15em"
 						/>

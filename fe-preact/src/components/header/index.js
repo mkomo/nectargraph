@@ -58,7 +58,7 @@ export default class Header extends Component {
 										<Link href="/meets">meets</Link>
 									</DropdownItem>
 									<DropdownItem>
-										<Link href="/">one-off events</Link>
+										<Link href="/events/single">one-off events</Link>
 									</DropdownItem>
 									<DropdownItem divider />
 									<DropdownItem>

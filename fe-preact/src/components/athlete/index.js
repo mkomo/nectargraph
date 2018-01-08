@@ -1,18 +1,58 @@
 import { h, Component } from 'preact';
+import { Link } from 'preact-router';
 import style from './style.less';
+import Reflux from 'reflux';
+import { AthleteActions, AthleteStore } from '../../stores/AthleteStore'
+import InlineInput from '../inline';
 
-export default class Athlete extends Component {
+var LuxComponent = Reflux.Component.extend(Component);
+
+export default class Athlete extends LuxComponent {
 	constructor(props) {
-		console.log(props);
+		console.log('Athlete constructor',props);
 		super(props);
+		this.state = {};
+		if (props && 'AthleteStore' in props) {
+			this.store = props.AthleteStore;
+		} else {
+			this.store = new AthleteStore(props).get();
+		}
 	}
 
-	// Note: `user` comes from the URL, courtesy of our router
-	render({ user }) {
-		return (
+	render() {
+		console.log('Athlete.render',this.state)
+		return this.state.isLoaded ? this.renderLoaded() : this.renderLoading();
+	}
+
+	renderLoaded() {
+		if (!('view' in this.props) || this.props['view'] == 'std') {
+			return (
+				<div class={style.profile}>
+					<h1><InlineInput
+						value={this.state.name}
+						onChange={AthleteActions.updateAthlete}
+						propName="name"
+						width="15em"
+						/></h1>
+					<p>This is the athlete profile for <b>{this.state.name}</b>.</p>
+					<button onClick={e=>(console.log(this.store))}>debug</button>
+				</div>
+			);
+		} else {
+			console.log('inline',this.props);
+			var href = "/athletes/" + this.state.organization + "/" + this.state.name;
+			return (
+				<div>
+					<Link href={href}>{this.state.name}</Link>
+				</div>
+			);
+		}
+	}
+
+	renderLoading() {
+		return(
 			<div class={style.profile}>
-				<h1>Athlete: {user}</h1>
-				<p>This is the athlete profile for a <b>{user}</b>.</p>
+				<h1>loading...</h1>
 			</div>
 		);
 	}

@@ -20,6 +20,7 @@ export default class InlineInput extends Component {
 			onChange: props.onChange,
 			validate: props.validate,
 			width: props.width,
+			placeholder: 'placeholder' in props ? props.placeholder : '(empty)',
 			inEdit: false
 		};
 	    this.setEditState = this.setEditState.bind(this);
@@ -52,6 +53,16 @@ export default class InlineInput extends Component {
 		}
 	}
 
+	valueStyle() {
+		return this.state.value ? '' : 'font-style: italic; opacity: 0.5';
+	}
+
+	valueWithPlaceholder() {
+		return this.state.value
+				? this.state.value
+				: this.state.placeholder;
+	}
+
 	render() {
 		return this.state.inEdit
 				? this.renderInput()
@@ -60,8 +71,8 @@ export default class InlineInput extends Component {
 
 	renderValue() {
 		return (
-			<span class={style.editable}>
-				{this.state.value}
+			<span class={style.editable} style={this.valueStyle()}>
+				{this.valueWithPlaceholder()}
 				<i onClick={this.setEditState} class="fa fa-pencil" aria-hidden="true"></i>
 			</span>
 		);

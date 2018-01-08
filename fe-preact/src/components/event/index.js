@@ -3,9 +3,13 @@ import style from './style.less';
 import { Button, Table } from 'reactstrap';
 import InlineInput from '../inline';
 import AthletePerformance from '../performance';
+import { AthleteStore } from '../../stores/AthleteStore'
 import 'bootstrap/dist/css/bootstrap.css';
 import Util from '../util';
 import { eventModel } from '../../models/EventModel.js'
+
+import Reflux from 'reflux';
+import { EventActions, EventStore } from '../../stores/EventStore'
 
 var util = new Util();
 
@@ -16,16 +20,19 @@ class Split {
 	}
 }
 
-export default class Event extends Component {
+var PrefluxComponent = Reflux.Component.extend(Component);
+
+export default class Event extends PrefluxComponent {
 
 	constructor(props) {
 		super(props);
+		// this.store = EventStore;
 		this.state = eventModel.getEvent(props);
 		//add one athlete to workout
 
 		if (this.state.athletePerformances.length == 0) {
 			this.state.athletePerformances.push(
-				new AthletePerformance(this, {name : 'Athlete 1'}, 1, 'Athlete 1')
+				new AthletePerformance(this, new AthleteStore({name : 'Athlete 1', organization: null}).get(), 1)
 			);
 		}
 
@@ -43,7 +50,7 @@ export default class Event extends Component {
 
 	loadFromObject(o) {
 		var asArray = o.athletePerformances.map(function(ap) {
-			var aso = new AthletePerformance(this, ap.athlete, ap.bibNumber, ap.displayName);
+			var aso = new AthletePerformance(this, new AthleteStore(ap.athlete).get(), ap.bibNumber, ap.displayName);
 			aso.splits = ap.splits;
 			return aso;
 		}, this);
@@ -94,7 +101,7 @@ export default class Event extends Component {
 			return Math.max(a, b);
 		}) + 1;
 		//TODO create athlete object
-		var ap = new AthletePerformance(this, {name : 'Athlete ' + bibNumber}, bibNumber, 'Athlete ' + bibNumber);
+		var ap = new AthletePerformance(this, new AthleteStore({name : 'Athlete ' + bibNumber, organization: null}).get(), bibNumber);
 		if (this.state.startSplit != null) {
 			ap.addSplit(this.state.startSplit);
 		}

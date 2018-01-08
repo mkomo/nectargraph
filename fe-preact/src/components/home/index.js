@@ -32,7 +32,7 @@ export default class Home extends Component {
 				<p><b><a href="#">Log in</a></b> to share your events or <i>get started right away</i>:</p>
 				<p className="lead">
 				  <Link className="btn btn-primary" href="/event">new standalone event</Link>&nbsp;
-  				  <Link className="btn btn-primary" href="/event">new meet</Link>
+  				  <Link className="btn btn-primary" href="/meet">new meet</Link>
 				</p>
 			  </Jumbotron>
 			</section>

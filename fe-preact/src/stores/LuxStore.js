@@ -1,5 +1,3 @@
-import Reflux from 'reflux';
-
 class LuxCache {
 	constructor() {
 		this.synonymsByType = {};
@@ -35,14 +33,108 @@ class LuxCache {
 
 var __cache = new LuxCache();
 
-class LuxStore extends Reflux.Store {
-	constructor() {
-		super();
-		this.cache = __cache;
+class LuxComponent {
+
+}
+
+LuxComponent.extend = function(Proto) {
+	return class extends Proto {
+		constructor(props) {
+			super(props);
+		}
+		setState(obj) {
+			console.log('new setState()####################################', obj);
+			return super.setState(obj);
+		}
+		componentWillMount() {
+			//TODO handle multiple stores
+			if (this.store) {
+				this.store.register(this);
+			}
+		}
+		componentWillUnmount() {
+			if (this.store) {
+				this.store.unregister(this);
+			}
+		}
 	}
 }
 
-class LuxMemStore extends LuxStore {
+var Lux = {
+	createActions : function(actionNames) {
+		return function() {
+			console.log('createActions', arguments);
+			var actions = {};
+			actionNames.forEach(name => {
+				var callCount = 0;
+				var listeners = [];
+				var onFuncName = 'on' + name.charAt(0).toUpperCase() + name.slice(1);
+				var f = function(){
+					callCount += 1;
+					console.log('executing action', name, callCount, arguments, this);
+					listeners.forEach(l => {
+						if (onFuncName in l) {
+							l[onFuncName](...arguments);
+						}
+					});
+				};
+				f.addListener = function(store) {
+					listeners.push(store);
+				}
+				f.removeListener = function(store) {
+					listeners = listeners.filter(s => (s !== store));
+				}
+				actions[name] = f;
+			});
+			window.actions = actions;
+			return actions;
+		}
+	},
+	Component : LuxComponent
+};
+
+class LuxAbstractStore {
+	constructor() {
+		this.cache = __cache;
+		this.components = [];
+		this.state = {};
+	}
+
+	setState(obj) {
+		console.log('LuxStore.setState()', obj);
+		this.components.forEach(function(c) {
+			c.setState(obj);
+		});
+		for (var key in obj) {
+			this.state[key] = obj[key];
+		}
+		this._persist();
+	}
+
+	setListenables(actions){
+		this.listenables = actions;
+		for (var name in actions) {
+			// console.log(actions[name]);
+			actions[name].addListener(this);
+		}
+	}
+
+	register(component) {
+		this.components.push(component);
+		component.setState(this.state);
+	}
+
+	unregister(component) {
+		this.components = this.components.filter(c => (c !== component));
+	}
+
+	_persist() {
+		//override as needed -- should probably only be called internally
+	}
+
+}
+
+class LuxMemStore extends LuxAbstractStore {
 	constructor() {
 		super();
 	}
@@ -57,47 +149,35 @@ class LuxMemStore extends LuxStore {
 			item.setState({isLoaded: true});
 		}
 		return item;
-		// new Promise(function(resolve, reject) {
-		// 	setTimeout(() => resolve({
-		// 		guid: '123456-1234',
-		// 		name: o.name,
-		// 		avatar: 'taco',
-        //
-		// 		organization: o.org,
-		// 		affiliations: [o.org],
-		// 	}), 2000);
-		// }).then((res) => {
-		// 	console.log('resolved',res);
-		// 	res.isLoaded = true;
-		// 	this.onUpdateAthlete(res);
-		// });
 	}
 
 	list(filter) {
 		console.log('listing items with filter', filter);
 		return this.cache.list(this.constructor.name, filter);
 	}
-
-	update(item) {
-		//do nothing -- item is it's own store
-	}
 }
 
-class LuxLocalStore extends LuxStore {
+class LuxLocalStore extends LuxMemStore {
 	constructor() {
 		super();
 	}
 
 }
 
-class LuxRestStore extends LuxStore {
+class LuxRestStore extends LuxMemStore {
+	constructor() {
+		super();
+	}
+}
+
+class LuxWebsocketStore extends LuxMemStore {
 	constructor() {
 		super();
 	}
 }
 
 export {
-	LuxStore,
+	Lux,
 	LuxMemStore,
 	LuxLocalStore,
 	LuxRestStore

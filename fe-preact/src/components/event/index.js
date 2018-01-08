@@ -8,7 +8,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import Util from '../util';
 import { eventModel } from '../../models/EventModel.js'
 
-import Reflux from 'reflux';
 import { EventActions, EventStore } from '../../stores/EventStore'
 
 var util = new Util();
@@ -20,9 +19,7 @@ class Split {
 	}
 }
 
-var PrefluxComponent = Reflux.Component.extend(Component);
-
-export default class Event extends PrefluxComponent {
+export default class Event extends Component {
 
 	constructor(props) {
 		super(props);

@@ -1,11 +1,12 @@
-import Reflux from 'reflux';
+import { LuxMemStore, Lux } from './LuxStore';
 
-let EventActions = Reflux.createActions([
-  'startEvent','endEvent'
+let EventActions = Lux.createActions([
+	'startEvent',
+	'endEvent'
 ]);
 
-class EventStore extends Reflux.Store {
-	constructor() {
+class EventStore extends LuxMemStore {
+	constructor(props = {}) {
 		super();
 		this.state = {
 			eventName: 'Event 1',

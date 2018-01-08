@@ -1,7 +1,6 @@
-import Reflux from 'reflux';
-import { LuxMemStore } from './LuxStore';
+import { LuxMemStore, Lux } from './LuxStore';
 
-let AthleteActions = Reflux.createActions([
+let AthleteActions = Lux.createActions([
 	'deleteAthlete',
 	'updateAthlete',
 	'addAthleteToEvent',
@@ -32,7 +31,7 @@ class AthleteStore extends LuxMemStore {
 			_fields: ['guid','name','avatar','athletePerformances']
 		};
 
-		this.listenables = AthleteActions;
+		this.setListenables(AthleteActions());
 	}
 
 	get() {

@@ -31,9 +31,9 @@ export default class List extends Component {
 			var obj = {};
 			obj[store.constructor.name] = items[key];
 			obj['view'] = 'list';
+			console.log('rendering list item ', name, obj);
 			views.push(h(this.props.view, obj));
 		}
-		console.log('rendering list of ', name, list);
 		return (
 			<div class={style.list}>
 				<h1>{name} list</h1>

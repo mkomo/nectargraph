@@ -1,11 +1,11 @@
 import { h, Component } from 'preact';
 import { Link } from 'preact-router';
 import style from './style.less';
-import Reflux from 'reflux';
-import { AthleteActions, AthleteStore } from '../../stores/AthleteStore'
+import { Lux } from '../../stores/LuxStore';
+import { AthleteStore } from '../../stores/AthleteStore'
 import InlineInput from '../inline';
 
-var LuxComponent = Reflux.Component.extend(Component);
+var LuxComponent = Lux.Component.extend(Component);
 
 export default class Athlete extends LuxComponent {
 	constructor(props) {
@@ -17,10 +17,12 @@ export default class Athlete extends LuxComponent {
 		} else {
 			this.store = new AthleteStore(props).get();
 		}
+		this.actions = this.store.listenables;
+		console.log('this.actions = ', this.actions);
 	}
 
 	render() {
-		console.log('Athlete.render',this.state)
+		console.log('Athlete.render',this.state);
 		return this.state.isLoaded ? this.renderLoaded() : this.renderLoading();
 	}
 
@@ -30,7 +32,7 @@ export default class Athlete extends LuxComponent {
 				<div class={style.profile}>
 					<h1><InlineInput
 						value={this.state.name}
-						onChange={AthleteActions.updateAthlete}
+						onChange={this.actions.updateAthlete}
 						propName="name"
 						width="15em"
 						/></h1>

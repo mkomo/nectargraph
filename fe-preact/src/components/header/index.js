@@ -42,9 +42,12 @@ export default class Header extends Component {
 								</Link>
 							</NavItem>
 							<NavItem>
-								<Link href="/events/live" className="nav-link">
+								<Link href="/events?live" className="nav-link">
 									<i>live</i>
 								</Link>
+							</NavItem>
+							<NavItem>
+								<Link href="/athletes" className="nav-link">athletes</Link>
 							</NavItem>
 							<UncontrolledDropdown nav inNavbar>
 								<DropdownToggle nav>

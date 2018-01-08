@@ -17,8 +17,8 @@ export default class Athlete extends LuxComponent {
 		} else {
 			this.store = new AthleteStore(props).get();
 		}
-		this.actions = this.store.listenables;
-		console.log('this.actions = ', this.actions);
+		//TODO handle multiple stores (potentially with multiple overlapping stores)
+		this.actions = this.store.actions;
 	}
 
 	render() {

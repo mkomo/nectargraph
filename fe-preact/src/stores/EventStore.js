@@ -16,7 +16,7 @@ class EventStore extends LuxMemStore {
 			athletePerformances: [],
 			_fields: ['eventName','startSplit','endSplit','athletePerformances']
 		};
-		this.listenables = EventActions;
+		this.setActions(EventActions());
 	}
 
 	onStartEvent(split) {

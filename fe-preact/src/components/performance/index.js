@@ -72,7 +72,9 @@ export default class AthletePerformance extends Component {
 	}
 
 	updateName(name) {
-		this.displayName = name;
+		//this.displayName = name;
+		console.log('updateName',this);
+		this.athlete.actions.updateAthlete({name: name});
 	}
 
 	render() {

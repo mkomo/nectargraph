@@ -12,6 +12,7 @@ class AthleteStore extends LuxMemStore {
 	constructor(props = {}) {
 		super();
 		this.props = props;
+		this._fields = ['state'];
 
 		console.log('AthleteStore constructor', props);
 		this.state = {
@@ -31,7 +32,7 @@ class AthleteStore extends LuxMemStore {
 			_fields: ['guid','name','avatar','athletePerformances']
 		};
 
-		this.setListenables(AthleteActions());
+		this.setActions(AthleteActions());
 	}
 
 	get() {

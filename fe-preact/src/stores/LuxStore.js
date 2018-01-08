@@ -111,8 +111,8 @@ class LuxAbstractStore {
 		this._persist();
 	}
 
-	setListenables(actions){
-		this.listenables = actions;
+	setActions(actions){
+		this.actions = actions;
 		for (var name in actions) {
 			// console.log(actions[name]);
 			actions[name].addListener(this);

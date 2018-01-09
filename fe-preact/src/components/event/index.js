@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import { Link } from 'preact-router';
 import style from './style.less';
-import { Button, Table } from 'reactstrap';
+import { Button, Table, Fade } from 'reactstrap';
 import InlineInput from '../inline';
 import AthletePerformance from '../performance';
 import { AthleteStore } from '../../stores/AthleteStore'
@@ -119,6 +119,7 @@ export default class Event extends LuxComponent {
 
 	deleteEvent() {
 		this.actions.deleteEvent();
+		console.log('onDeleteEvent has run', this.store);
 	}
 
 	updateState(changes) {
@@ -151,13 +152,22 @@ export default class Event extends LuxComponent {
 	render() {
 		console.debug('Event.render',this.state);
 		return (!('view' in this.props) || this.props['view'] == 'std')
-						? this.renderLoaded()
-						: this.renderList();
+				? this.renderLoaded()
+				: this.renderList();
 	}
 
 	renderList() {
 		console.debug('inline',this.state);
 		var href = "/events" + this.store.url();
+
+		if (this.state.deleted) {
+				return (
+					<Fade in={false} tag="div" className={style.list_entry}
+							unmountOnExit
+							onEnter={e=>(console.log('enter', new Date()))}
+							onExit={e=>{console.log('exit', new Date())}}>deleted</Fade>
+				);
+		}
 		/**
 		icon (event status)
 		event name

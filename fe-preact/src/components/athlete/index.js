@@ -3,7 +3,7 @@ import { Link } from 'preact-router';
 import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
 import { AthleteStore } from '../../stores/AthleteStore';
-import { Button } from 'reactstrap';
+import { Button, Fade } from 'reactstrap';
 import InlineInput from '../inline';
 
 var LuxComponent = Lux.Component.extend(Component);
@@ -41,6 +41,15 @@ export default class Athlete extends LuxComponent {
 		console.debug('Athlete.renderList',this.props);
 		var href = "/athletes" + this.store.url();
 		var name = this.state.name ? this.state.name : '(unnamed athlete)';
+
+		if (this.state.deleted) {
+				return (
+					<Fade in={false} tag="div" className={style.list_entry}
+							unmountOnExit
+							onEnter={e=>(console.log('enter', new Date()))}
+							onExit={e=>{console.log('exit', new Date())}}>deleted</Fade>
+				);
+		}
 
 		/**
 		icon (user avatar)

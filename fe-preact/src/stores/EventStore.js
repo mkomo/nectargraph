@@ -41,6 +41,8 @@ class EventStore extends LuxMemStore {
 
 	onDeleteEvent() {
 		console.log('onDeleteEvent');
+		this.delete();
+		this.setState({deleted: true});
 	}
 }
 

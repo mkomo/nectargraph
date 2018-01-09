@@ -51,6 +51,15 @@ class LuxCache {
 		return keys;
 	}
 
+	delete(type, value) {
+		var keys = createKeys(value.state, type.keys);
+		type = this.normalizeType(type);
+		keys.forEach(k=>{
+			delete this.synonymsByType[type][value.__guid];
+		});
+		delete this.itemsByType[type][value.__guid];
+	}
+
 	rehome(type, oldkeys, value) {
 		var newkeys = this.store(type, value);
 		type = this.normalizeType(type);
@@ -150,6 +159,10 @@ var Lux = {
 		return __cache.list(Proto, filter);
 	},
 
+	delete : function(Proto, props) {
+		return __cache.delete(Proto, props);
+	},
+
 	guid: uuidv4,
 
 	Component : LuxComponent
@@ -176,7 +189,7 @@ class LuxAbstractStore {
 		this._persist();
 	}
 
-	setActions(actions){
+	setActions(actions) {
 		this.actions = actions;
 		for (var name in actions) {
 			// console.log(actions[name]);
@@ -193,6 +206,10 @@ class LuxAbstractStore {
 		this.components = this.components.filter(c => (c !== component));
 	}
 
+	delete() {
+		return Lux.delete(this.constructor, this);
+	}
+
 	_persist() {
 		//override as needed -- should probably only be called internally
 	}
@@ -203,6 +220,7 @@ class LuxAbstractStore {
 			//Just choose the first key because the item will be fetchable from cache with any of the keys
 			return keys[0];
 		}
+		console.error('could not create url', this);
 		return 'TODOfixurlguidstuff';
 	}
 

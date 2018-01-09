@@ -31,6 +31,7 @@ class AthleteStore extends LuxMemStore {
 			isLoaded: false,
 			isErrored: null,
 			isSaved: false,
+			isDeleted: false,
 
 			//TODO make sense of how we represent things stored in another object and things stored with this
 			//TODO ascertain fields from the state object once this is reorganized
@@ -41,7 +42,9 @@ class AthleteStore extends LuxMemStore {
 	}
 
 	onDeleteAthlete() {
-		console.log('onDeleteAthlete',arguments);
+		console.log('onDeleteAthlete');
+		this.delete();
+		this.setState({deleted: true});
 	}
 	onUpdateAthlete(attrs) {
 		console.log('onUpdateAthlete',arguments);

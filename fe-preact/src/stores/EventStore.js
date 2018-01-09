@@ -3,7 +3,8 @@ import { LuxMemStore, Lux } from './LuxStore';
 let EventActions = Lux.createActions([
 	'startEvent',
 	'endEvent',
-	'updateEvent'
+	'updateEvent',
+	'deleteEvent'
 ]);
 
 var keys = [
@@ -36,6 +37,10 @@ class EventStore extends LuxMemStore {
 
 	onUpdateEvent(obj) {
 		this.setState(obj);
+	}
+
+	onDeleteEvent() {
+		console.log('onDeleteEvent');
 	}
 }
 

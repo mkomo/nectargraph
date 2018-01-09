@@ -2,7 +2,8 @@ import { h, Component } from 'preact';
 import { Link } from 'preact-router';
 import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
-import { AthleteStore } from '../../stores/AthleteStore'
+import { AthleteStore } from '../../stores/AthleteStore';
+import { Button } from 'reactstrap';
 import InlineInput from '../inline';
 
 var LuxComponent = Lux.Component.extend(Component);
@@ -19,6 +20,12 @@ export default class Athlete extends LuxComponent {
 		}
 		//TODO handle multiple stores (potentially with multiple overlapping stores)
 		this.actions = this.store.actions;
+	}
+
+	deleteAthlete(e) {
+		//TODO add confirm
+		this.actions.deleteAthlete();
+		return true;
 	}
 
 	render() {
@@ -42,6 +49,12 @@ export default class Athlete extends LuxComponent {
 		 */
 		return (
 			<div class={style.list_entry}>
+				<div class="pull-right">
+					<Button className={style.list_entry_action} color="link"
+							onClick={e=>(this.deleteAthlete())}>
+						<i class="fa fa-trash" aria-hidden="true"></i>
+					</Button>
+				</div>
 				<span><i class="fa fa-user" aria-hidden="true"></i></span>
 				<span><Link href={href}>
 					<InlineInput

@@ -163,7 +163,7 @@ class LuxAbstractStore {
 	}
 
 	setState(obj) {
-		console.log('LuxStore.setState()', obj);
+		console.debug('LuxStore.setState()', obj);
 		this.components.forEach(function(c) {
 			c.setState(obj);
 		});

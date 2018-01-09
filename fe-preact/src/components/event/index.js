@@ -115,7 +115,11 @@ export default class Event extends LuxComponent {
 	updateTime = () => {
 		let time = new Date().toLocaleString();
 		this.actions.updateEvent({ currentTime: time });
-	};
+	}
+
+	deleteEvent() {
+		this.actions.deleteEvent();
+	}
 
 	updateState(changes) {
 		this.actions.updateEvent(changes);
@@ -163,6 +167,12 @@ export default class Event extends LuxComponent {
 		 */
 		return (
 			<div class={style.list_entry}>
+				<div class="pull-right">
+					<Button className={style.list_entry_action} color="link"
+							onClick={e=>(this.deleteEvent())}>
+						<i class="fa fa-trash" aria-hidden="true"></i>
+					</Button>
+				</div>
 				<span>
 					{this.isStarted()
 						? (this.isRunning()

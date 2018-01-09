@@ -8,15 +8,17 @@ let AthleteActions = Lux.createActions([
 	'deleteAthleteSplit'
 ]);
 
+var keys = [
+	a => (a.organization && a.name) ? "/" + a.organization + "/" + a.name : undefined,
+	a => a.guid ? "/" + a.guid : undefined
+]
 class AthleteStore extends LuxMemStore {
 	constructor(props = {}) {
-		super();
-		this.props = props;
+		super(props);
 		this._fields = ['state'];
 
-		console.log('AthleteStore constructor', props);
 		this.state = {
-			guid: null,
+			guid: Lux.guid(),
 			name: null,
 			avatar: null,
 
@@ -25,39 +27,17 @@ class AthleteStore extends LuxMemStore {
 
 			athletePerformances: [],
 
+			//TODO -- these are not exactly state. save them elsewhere and make them accessible via functions
 			isLoaded: false,
 			isErrored: null,
 			isSaved: false,
 
-			_fields: ['guid','name','avatar','athletePerformances']
+			//TODO make sense of how we represent things stored in another object and things stored with this
+			//TODO ascertain fields from the state object once this is reorganized
+			_fields: ['guid','name','avatar','organization','affiliations','athletePerformances']
 		};
 
 		this.setActions(AthleteActions());
-	}
-
-	get() {
-		var props = this.props;
-		console.log('get() on item with props', props);
-		if ('name' in props && 'organization' in props) {
-			this.setState({
-				name: props.name,
-				organization: props.organization
-			});
-			return this.fetchByNameAndOrg(props.name, props.organization);
-		} else if ('guid' in props) {
-			return this.fetchByGuid(props.guid);
-		}
-		return this;
-
-		//TODO register this instance of AthleteStore with some sort of object mgr
-	}
-
-	fetchByGuid(guid){
-		return this.fetch("/" + guid, athlete=>["/" + athlete.org + "/" + athlete.name]);
-	}
-
-	fetchByNameAndOrg(name, org) {
-		return this.fetch("/" + org + "/" + name, athlete=>["/" + athlete.guid]);
 	}
 
 	onDeleteAthlete() {
@@ -81,7 +61,18 @@ class AthleteStore extends LuxMemStore {
 	}
 }
 
+AthleteStore.keys = keys;
+
 export {
 	AthleteActions,
 	AthleteStore
 }
+
+/**
+TODO
+implement delete
+separate out the lux loaded, errored, saved states
+implement localstorage (with successful rehydration)
+handle multiple action sources
+Store-ify AthletePerformance
+ */

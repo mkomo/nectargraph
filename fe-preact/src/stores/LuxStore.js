@@ -1,3 +1,10 @@
+//https://gist.github.com/jed/982883
+function uuidv4() {
+	return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+		(c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+	);
+}
+
 class LuxCache {
 	constructor() {
 		this.synonymsByType = {};
@@ -5,29 +12,51 @@ class LuxCache {
 		window.cache = this;
 	}
 
-	fetch(type, key) {
-		if (type in this.itemsByType) {
-			var items = this.itemsByType[type];
-			var synonyms = type in this.synonymsByType ? this.synonymsByType[type] : {};
-			var normKey = key in synonyms ? synonyms[key] : key;
-			return normKey in items ? items[normKey] : null;
-		} else {
-			this.itemsByType[type] = {};
-			this.synonymsByType[type] = {};
-			return null;
+	normalizeType(type) {
+		if (typeof type === "function") {
+			type = type.name;
 		}
+		if (!(type in this.itemsByType)) this.itemsByType[type] = {};
+		if (!(type in this.synonymsByType)) this.synonymsByType[type] = {};
+
+		return type;
+	}
+
+	fetch(type, key) {
+		type = this.normalizeType(type);
+		var items = this.itemsByType[type];
+		var synonyms = this.synonymsByType[type];
+		var normKey = key in synonyms ? synonyms[key] : key;
+		return normKey in items ? items[normKey] : null;
+
 	}
 
 	list(type, filter) {
-		return type in this.itemsByType ? this.itemsByType[type] : [];
+		//TODO impl filter
+		type = this.normalizeType(type);
+		return this.itemsByType[type];
 	}
 
-	store(type, keys, value) {
-		console.log('store',type, keys, value);
-		this.itemsByType[type][keys[0]] = value;
-		for (var i = 1; i < keys.length; i++) {
-			this.synonymsByType[type][keys[i]] = keys[0];
+	store(type, value) {
+		var keys = createKeys(value.state, type.keys);
+		type = this.normalizeType(type);
+		console.log('storing item with created keys',type, keys, value);
+		if (!value.__guid) {
+			value.__guid = uuidv4();
 		}
+		this.itemsByType[type][value.__guid] = value;
+		for (var i = 0; i < keys.length; i++) {
+			this.synonymsByType[type][keys[i]] = value.__guid;
+		}
+		return keys;
+	}
+
+	rehome(type, oldkeys, value) {
+		var newkeys = this.store(type, value);
+		type = this.normalizeType(type);
+		oldkeys.filter(k => !newkeys.includes(k)).forEach(k=>{
+			delete this.synonymsByType[type][value.__guid];
+		})
 	}
 }
 
@@ -43,7 +72,6 @@ LuxComponent.extend = function(Proto) {
 			super(props);
 		}
 		setState(obj) {
-			console.log('new setState()####################################', obj);
 			return super.setState(obj);
 		}
 		componentWillMount() {
@@ -60,10 +88,15 @@ LuxComponent.extend = function(Proto) {
 	}
 }
 
+function createKeys(obj, kfs) {
+	console.debug('createKeys', obj, kfs);
+	return kfs.map(f=>f(obj)).filter(k=>k!==undefined);
+}
+
 var Lux = {
 	createActions : function(actionNames) {
 		return function() {
-			console.log('createActions', arguments);
+			console.debug('createActions', arguments);
 			var actions = {};
 			actionNames.forEach(name => {
 				var callCount = 0;
@@ -71,7 +104,7 @@ var Lux = {
 				var onFuncName = 'on' + name.charAt(0).toUpperCase() + name.slice(1);
 				var f = function(){
 					callCount += 1;
-					console.log('executing action', name, callCount, arguments, this);
+					console.debug('executing action', name, callCount, arguments, this);
 					listeners.forEach(l => {
 						if (onFuncName in l) {
 							l[onFuncName](...arguments);
@@ -90,12 +123,41 @@ var Lux = {
 			return actions;
 		}
 	},
+
+	get : function(Proto, props){
+		var keys = createKeys(props, Proto.keys);
+		console.debug('created keys', keys);
+		if (keys != null && keys.length > 0) {
+			//Just choose the first key because the item will be fetchable from cache with any of the keys
+			var key = keys[0];
+			console.debug('fetching item with key', key);
+			var item = __cache.fetch(Proto, key);
+			if (item != null) {
+				console.debug('fetched item with key', key, item);
+				return item;
+			}
+		}
+		//either no keys or item not found in cache
+		var p = new Proto(props);
+		//TODO separate isLoaded isErrored isSaved into some separate encapsulated property like athlete.lux.isLoaded or something
+		p.setState({isLoaded : true});
+		__cache.store(Proto, p);
+		return p;
+	},
+
+	list : function(Proto, filter) {
+		console.log('listing items with filter', filter);
+		return __cache.list(Proto, filter);
+	},
+
+	guid: uuidv4,
+
 	Component : LuxComponent
 };
 
 class LuxAbstractStore {
-	constructor() {
-		this.cache = __cache;
+	constructor(props) {
+		this.props = props;
 		this.components = [];
 		this.state = {};
 	}
@@ -105,9 +167,12 @@ class LuxAbstractStore {
 		this.components.forEach(function(c) {
 			c.setState(obj);
 		});
+
 		for (var key in obj) {
 			this.state[key] = obj[key];
 		}
+
+		//TODO __cache.rehome()
 		this._persist();
 	}
 
@@ -132,47 +197,39 @@ class LuxAbstractStore {
 		//override as needed -- should probably only be called internally
 	}
 
+	url() {
+		var keys = createKeys(this.state, this.constructor.keys);
+		if (keys != null && keys.length > 0) {
+			//Just choose the first key because the item will be fetchable from cache with any of the keys
+			return keys[0];
+		}
+		return 'TODOfixurlguidstuff';
+	}
+
 }
 
 class LuxMemStore extends LuxAbstractStore {
-	constructor() {
-		super();
-	}
-
-	fetch(key, synonymFuct) {
-		console.log('fetching item with key', key)
-		var item = this.cache.fetch(this.constructor.name, key);
-		if (item == null) {
-			console.log('item not found in cache with key', key)
-			this.cache.store(this.constructor.name, [key], this);
-			item = this;
-			item.setState({isLoaded: true});
-		}
-		return item;
-	}
-
-	list(filter) {
-		console.log('listing items with filter', filter);
-		return this.cache.list(this.constructor.name, filter);
+	constructor(props) {
+		super(props);
 	}
 }
 
 class LuxLocalStore extends LuxMemStore {
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 	}
 
 }
 
 class LuxRestStore extends LuxMemStore {
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 	}
 }
 
 class LuxWebsocketStore extends LuxMemStore {
-	constructor() {
-		super();
+	constructor(props) {
+		super(props);
 	}
 }
 

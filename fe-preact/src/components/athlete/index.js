@@ -8,47 +8,51 @@ import InlineInput from '../inline';
 var LuxComponent = Lux.Component.extend(Component);
 
 export default class Athlete extends LuxComponent {
-	constructor(props) {
-		console.log('Athlete constructor',props);
+	constructor(props = {}) {
+		console.debug('Athlete constructor',props);
 		super(props);
 		this.state = {};
 		if (props && 'AthleteStore' in props) {
 			this.store = props.AthleteStore;
 		} else {
-			this.store = new AthleteStore(props).get();
+			this.store = Lux.get(AthleteStore, props);
 		}
 		//TODO handle multiple stores (potentially with multiple overlapping stores)
 		this.actions = this.store.actions;
 	}
 
 	render() {
-		console.log('Athlete.render',this.state);
-		return this.state.isLoaded ? this.renderLoaded() : this.renderLoading();
+		console.debug('Athlete.render',this.state);
+		return !this.state.isLoaded
+				? this.renderLoading()
+				: (!('view' in this.props) || this.props['view'] == 'std'
+						? this.renderLoaded()
+						: this.renderInline());
+	}
+
+	renderInline() {
+		console.debug('Athlete.renderInline',this.props);
+		var href = "/athletes" + this.store.url();
+		return (
+			<div>
+				<Link href={href}>{this.state.name ? this.state.name : '(unnamed athlete)'}</Link>
+			</div>
+		);
 	}
 
 	renderLoaded() {
-		if (!('view' in this.props) || this.props['view'] == 'std') {
-			return (
-				<div class={style.profile}>
-					<h1><InlineInput
-						value={this.state.name}
-						onChange={this.actions.updateAthlete}
-						propName="name"
-						width="15em"
-						/></h1>
-					<p>This is the athlete profile for <b>{this.state.name}</b>.</p>
-					<button onClick={e=>(console.log(this.store))}>debug</button>
-				</div>
-			);
-		} else {
-			console.log('inline',this.props);
-			var href = "/athletes/" + this.state.organization + "/" + this.state.name;
-			return (
-				<div>
-					<Link href={href}>{this.state.name}</Link>
-				</div>
-			);
-		}
+		return (
+			<div class={style.profile}>
+				<h1><InlineInput
+					value={this.state.name}
+					onChange={this.actions.updateAthlete}
+					propName="name"
+					width="15em"
+					/></h1>
+				<p>This is the athlete profile for <b>{this.state.name}</b>.</p>
+				<button onClick={e=>(console.log(this.store))}>debug</button>
+			</div>
+		);
 	}
 
 	renderLoading() {

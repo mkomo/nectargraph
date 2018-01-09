@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import { Link } from 'preact-router';
 import style from './style.less';
 import { Button, Table } from 'reactstrap';
 import InlineInput from '../inline';
@@ -6,9 +7,9 @@ import AthletePerformance from '../performance';
 import { AthleteStore } from '../../stores/AthleteStore'
 import 'bootstrap/dist/css/bootstrap.css';
 import Util from '../util';
-import { eventModel } from '../../models/EventModel.js'
+import { Lux } from '../../stores/LuxStore.js'
 
-import { EventActions, EventStore } from '../../stores/EventStore'
+import { EventStore } from '../../stores/EventStore'
 
 var util = new Util();
 
@@ -19,22 +20,24 @@ class Split {
 	}
 }
 
-export default class Event extends Component {
+var LuxComponent = Lux.Component.extend(Component);
+
+export default class Event extends LuxComponent {
 
 	constructor(props) {
 		super(props);
-		// this.store = EventStore;
-		this.state = eventModel.getEvent(props);
-		//add one athlete to workout
 
-		if (this.state.athletePerformances.length == 0) {
-			this.state.athletePerformances.push(
-				new AthletePerformance(this, new AthleteStore({name : 'Athlete 1', organization: null}).get(), 1)
-			);
+		this.state = {};
+		if (props && 'EventStore' in props) {
+			this.store = props.EventStore;
+		} else {
+			this.store = Lux.get(EventStore, props);
 		}
+		//TODO handle multiple stores (potentially with multiple overlapping stores)
+		this.actions = this.store.actions;
 
 		//TODO remove this -- for debugging
-		document.event = this;
+		window.event = this;
 
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
@@ -45,13 +48,14 @@ export default class Event extends Component {
 
 	}
 
+	//TODO remove this in favor of LuxStore persisting
 	loadFromObject(o) {
 		var asArray = o.athletePerformances.map(function(ap) {
-			var aso = new AthletePerformance(this, new AthleteStore(ap.athlete).get(), ap.bibNumber, ap.displayName);
+			var aso = new AthletePerformance(this, Lux.get(AthleteStore,ap.athlete), ap.bibNumber, ap.displayName);
 			aso.splits = ap.splits;
 			return aso;
 		}, this);
-		this.setState({
+		this.actions.updateEvent({
 			startSplit: o.startSplit,
 			athletePerformances: asArray
 		});
@@ -70,7 +74,7 @@ export default class Event extends Component {
 		this.state.athletePerformances.forEach(function(ap) {
 			ap.splits = [];
 		});
-		this.setState({
+		this.actions.updateEvent({
 			startSplit: null,
 			endSplit: null
 		});
@@ -79,16 +83,16 @@ export default class Event extends Component {
 	handleStartEndResumeClick() {
 		if (this.state.startSplit) {
 			if (this.state.endSplit) {
-				this.setState({ endSplit : null});
+				this.actions.updateEvent({ endSplit : null});
 			} else {
-				this.setState({ endSplit : new Split()});
+				this.actions.updateEvent({ endSplit : new Split()});
 			}
 		} else {
 			var split = new Split();
 			this.state.athletePerformances.forEach(function(ap) {
 				ap.splits = [split];
 			});
-			this.setState({ startSplit: split });
+			this.actions.updateEvent({ startSplit: split });
 		}
 	}
 
@@ -96,24 +100,25 @@ export default class Event extends Component {
 		var athletePerformances = this.state.athletePerformances;
 		var bibNumber = athletePerformances.map(a => a.bibNumber).reduce(function(a, b) {
 			return Math.max(a, b);
-		}) + 1;
+		}, 0) + 1;
 		//TODO create athlete object
-		var ap = new AthletePerformance(this, new AthleteStore({name : 'Athlete ' + bibNumber, organization: null}).get(), bibNumber);
+		var athlete = Lux.get(AthleteStore,{});
+		var ap = new AthletePerformance(this, athlete, bibNumber);
 		if (this.state.startSplit != null) {
 			ap.addSplit(this.state.startSplit);
 		}
 		athletePerformances.push(ap);
-		this.setState({ athletePerformances: athletePerformances });
+		this.actions.updateEvent({ athletePerformances: athletePerformances });
 	}
 
 	// update the current time
 	updateTime = () => {
 		let time = new Date().toLocaleString();
-		this.setState({ currentTime: time });
+		this.actions.updateEvent({ currentTime: time });
 	};
 
 	updateState(changes) {
-		this.setState(changes);
+		this.actions.updateEvent(changes);
 	}
 
 	isStarted() {
@@ -130,7 +135,7 @@ export default class Event extends Component {
 		//TODO change this to setTimeout? it seems laggy in chrome android,
 		//but maybe it's something else.
 		//https://www.thecodeship.com/web-development/alternative-to-javascript-evil-setinterval/
-		this.timer = setInterval(this.updateTime, 20);
+		this.timer = setInterval(this.updateTime, 1000);
 		this.updateTime();
 	}
 
@@ -140,6 +145,23 @@ export default class Event extends Component {
 	}
 
 	render() {
+		console.debug('Event.render',this.state);
+		return (!('view' in this.props) || this.props['view'] == 'std')
+						? this.renderLoaded()
+						: this.renderInline();
+	}
+
+	renderInline() {
+		console.debug('inline',this.state);
+		var href = "/events" + this.store.url();
+		return (
+			<div>
+				event: <Link href={href}>{this.state.eventName ? this.state.eventName : '(unnamed event)'}</Link>
+			</div>
+		);
+	}
+
+	renderLoaded() {
 		let clockReading = '';
 		let buttonText = 'Start Timer';
 		let buttonColor = 'secondary';

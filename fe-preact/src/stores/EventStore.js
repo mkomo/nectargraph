@@ -2,19 +2,25 @@ import { LuxMemStore, Lux } from './LuxStore';
 
 let EventActions = Lux.createActions([
 	'startEvent',
-	'endEvent'
+	'endEvent',
+	'updateEvent'
 ]);
+
+var keys = [
+	a => a.guid ? "/" + a.guid : undefined,
+]
 
 class EventStore extends LuxMemStore {
 	constructor(props = {}) {
-		super();
+		console.log('EventStore constructor', props);
+		super(props);
 		this.state = {
-			eventName: 'Event 1',
+			guid: Lux.guid(),
+			eventName: null,
 			startSplit: null,
 			endSplit: null,
 			currentTime: null,
-			athletePerformances: [],
-			_fields: ['eventName','startSplit','endSplit','athletePerformances']
+			athletePerformances: []
 		};
 		this.setActions(EventActions());
 	}
@@ -26,7 +32,13 @@ class EventStore extends LuxMemStore {
 	onEndEvent(split) {
 		this.setState({endSplit: split});
 	}
+
+	onUpdateEvent(obj) {
+		this.setState(obj);
+	}
 }
+
+EventStore.keys = keys;
 
 export {
 	EventActions,

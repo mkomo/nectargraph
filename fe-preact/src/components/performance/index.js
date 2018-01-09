@@ -9,6 +9,7 @@ export default class AthletePerformance extends Component {
 	constructor(workout, athlete, bibNumber, displayName = null) {
 		super({});
 		this.workout = workout;
+		console.log('new AthletePerformance(), athlete = ', athlete);
 		this.athlete = athlete;
 		this.displayName = displayName;
 		this.bibNumber = bibNumber;

@@ -1,5 +1,6 @@
 import { h, Component } from 'preact';
 import { AthleteStore } from '../../stores/AthleteStore'
+import { Lux } from '../../stores/LuxStore'
 import style from './style.less';
 
 export default class List extends Component {
@@ -20,16 +21,15 @@ export default class List extends Component {
 
 	// Note: `user` comes from the URL, courtesy of our router
 	render() {
-		console.log(this);
+		console.log('List.render()', this);
 
-		var name = (new this.props.view()).constructor.name;
-		var store = new this.props.type();
-		var items = store.list();
+		var name = this.props.view.name;
+		var items = Lux.list(this.props.type.name, this.props.filter);
 		console.log('retrieved list of items:', items);
 		var views = [];
 		for (var key in items) {
 			var obj = {};
-			obj[store.constructor.name] = items[key];
+			obj[this.props.type.name] = items[key];
 			obj['view'] = 'list';
 			console.log('rendering list item ', name, obj);
 			views.push(h(this.props.view, obj));

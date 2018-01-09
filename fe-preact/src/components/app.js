@@ -33,8 +33,8 @@ export default class App extends Component {
 
 						<Athlete path="/athletes/:organization/:name" />
 						<Athlete path="/athletes/:guid" />
-						<Event path="/events/:event_guid" />
-						<Meet path="/meets/:meet_guid" />
+						<Event path="/events/:guid" />
+						<Meet path="/meets/:guid" />
 
 						<List path="/athletes" type={AthleteStore} view={Athlete}/>
 						<List path="/events" type={EventStore} view={Event}/>

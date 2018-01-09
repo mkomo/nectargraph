@@ -1,8 +1,33 @@
 @import '~style/helpers';
 
 .list {
-	padding: 56px 20px;
+	padding: 1em;
 	min-height: 100%;
 	width: 100%;
-	background: #EEE;
+	background: #9fb8ad20;
+}
+
+.list a:not(.btn) {
+	color: #2e5057c0;
+}
+
+.list a:hover {
+	text-decoration: none;
+	color: #2e5057;
+}
+
+.list_entry {
+	height: 3em;
+	padding: 0.5em 0.5em 0.5em 1em;
+	margin-bottom: 10px;
+	background-color: #9fb8ad40;
+}
+.list_entry>span {
+	display: inline-block;
+	font-size: 1.5em;
+	padding-right: 1em;
+}
+
+.list_entry:hover {
+	background-color: #9fb8ad;
 }

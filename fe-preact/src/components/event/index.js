@@ -148,15 +148,39 @@ export default class Event extends LuxComponent {
 		console.debug('Event.render',this.state);
 		return (!('view' in this.props) || this.props['view'] == 'std')
 						? this.renderLoaded()
-						: this.renderInline();
+						: this.renderList();
 	}
 
-	renderInline() {
+	renderList() {
 		console.debug('inline',this.state);
 		var href = "/events" + this.store.url();
+		/**
+		icon (event status)
+		event name
+		date created
+		parent meet?
+		athlete count?
+		 */
 		return (
-			<div>
-				event: <Link href={href}>{this.state.eventName ? this.state.eventName : '(unnamed event)'}</Link>
+			<div class={style.list_entry}>
+				<span>
+					{this.isStarted()
+						? (this.isRunning()
+							? <i class="fa fa-hourglass-half" aria-hidden="true"></i>
+							: <i class="fa fa-check-circle" aria-hidden="true"></i>
+						)
+						: <i class="fa fa-clock-o" aria-hidden="true"></i>
+					}
+				</span>
+				<span><Link href={href}>
+					<InlineInput
+						value={this.state.eventName}
+						onChange={this.actions.updateEvent}
+						propName="eventName"
+						width="10em"
+						/>
+				</Link></span>
+				<span></span>
 			</div>
 		);
 	}

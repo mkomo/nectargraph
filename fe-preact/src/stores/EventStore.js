@@ -12,7 +12,7 @@ var keys = [
 
 class EventStore extends LuxMemStore {
 	constructor(props = {}) {
-		console.log('EventStore constructor', props);
+		console.debug('EventStore constructor', props);
 		super(props);
 		this.state = {
 			guid: Lux.guid(),
@@ -20,6 +20,7 @@ class EventStore extends LuxMemStore {
 			startSplit: null,
 			endSplit: null,
 			currentTime: null,
+			dateCreated: new Date(),
 			athletePerformances: []
 		};
 		this.setActions(EventActions());

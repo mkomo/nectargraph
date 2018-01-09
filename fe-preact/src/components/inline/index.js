@@ -77,11 +77,11 @@ export default class InlineInput extends Component {
 			</span>
 		);
 	}
-
+//
 	renderInput() {
 		return (
 			<form onSubmit={this.handleSubmit}>
-				<input type="text"
+				<input class={style.input} type="text"
 					ref={(input) => { this.textInput = input; }}
 					value={this.state.tempValue}
 					onInput={this.handleChange}

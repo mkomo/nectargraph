@@ -11,15 +11,12 @@ export default class List extends Component {
 		window.list = this;
 	}
 
-	// gets called when this route is navigated to
 	componentDidMount() {
 	}
 
-	// gets called just before navigating away from the route
 	componentWillUnmount() {
 	}
 
-	// Note: `user` comes from the URL, courtesy of our router
 	render() {
 		console.log('List.render()', this);
 
@@ -36,7 +33,8 @@ export default class List extends Component {
 		}
 		return (
 			<div class={style.list}>
-				<h1>{name} list</h1>
+				<h1>{name} List</h1>
+				{/*TODO add canned filters, add search above list*/}
 				{views}
 			</div>
 		);

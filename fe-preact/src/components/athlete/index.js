@@ -27,15 +27,30 @@ export default class Athlete extends LuxComponent {
 				? this.renderLoading()
 				: (!('view' in this.props) || this.props['view'] == 'std'
 						? this.renderLoaded()
-						: this.renderInline());
+						: this.renderList());
 	}
 
-	renderInline() {
-		console.debug('Athlete.renderInline',this.props);
+	renderList() {
+		console.debug('Athlete.renderList',this.props);
 		var href = "/athletes" + this.store.url();
+		var name = this.state.name ? this.state.name : '(unnamed athlete)';
+
+		/**
+		icon (user avatar)
+		name (editable)
+		organizations/affiliations
+		 */
 		return (
-			<div>
-				<Link href={href}>{this.state.name ? this.state.name : '(unnamed athlete)'}</Link>
+			<div class={style.list_entry}>
+				<span><i class="fa fa-user" aria-hidden="true"></i></span>
+				<span><Link href={href}>
+					<InlineInput
+						value={this.state.name}
+						onChange={this.actions.updateAthlete}
+						propName="name"
+						width="10em"
+						/>
+				</Link></span>
 			</div>
 		);
 	}

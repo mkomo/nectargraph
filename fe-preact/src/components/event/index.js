@@ -4,13 +4,15 @@ import style from './style.less';
 import { Button, Table, Fade } from 'reactstrap';
 import InlineInput from '../inline';
 import AthletePerformance from '../performance';
-import { AthleteStore } from '../../stores/AthleteStore'
-import 'bootstrap/dist/css/bootstrap.css';
-import Util from '../util';
-import { Lux } from '../../stores/LuxStore.js'
+import Clock from '../clock';
 
+import { Lux } from '../../stores/LuxStore'
 import { EventStore } from '../../stores/EventStore'
+import { AthleteStore } from '../../stores/AthleteStore'
 
+import 'bootstrap/dist/css/bootstrap.css';
+
+import Util from '../util';
 var util = new Util();
 
 class Split {
@@ -111,12 +113,6 @@ export default class Event extends LuxComponent {
 		this.actions.updateEvent({ athletePerformances: athletePerformances });
 	}
 
-	// update the current time
-	updateTime = () => {
-		let time = new Date().toLocaleString();
-		this.actions.updateEvent({ currentTime: time });
-	}
-
 	deleteEvent() {
 		this.actions.deleteEvent();
 		console.log('onDeleteEvent has run', this.store);
@@ -132,21 +128,6 @@ export default class Event extends LuxComponent {
 
 	isRunning() {
 		return this.state.startSplit != null && this.state.endSplit == null;
-	}
-
-	// gets called when this route is navigated to
-	componentDidMount() {
-		// start a timer for the clock:
-		//TODO change this to setTimeout? it seems laggy in chrome android,
-		//but maybe it's something else.
-		//https://www.thecodeship.com/web-development/alternative-to-javascript-evil-setinterval/
-		this.timer = setInterval(this.updateTime, 1000);
-		this.updateTime();
-	}
-
-	// gets called just before navigating away from the route
-	componentWillUnmount() {
-		clearInterval(this.timer);
 	}
 
 	render() {
@@ -206,27 +187,18 @@ export default class Event extends LuxComponent {
 	}
 
 	renderLoaded() {
-		let clockReading = '';
 		let buttonText = 'Start Timer';
 		let buttonColor = 'secondary';
-		let startTimeText = null;
 		if (this.isStarted()) {
-			startTimeText = 'started: ' + new Date(this.state.startSplit.timestamp).toLocaleString();
 			if (!this.isRunning()) {
 				buttonText = 'Resume';
 			} else {
-				clockReading =
-						util.formatDuration((new Date().getTime() - this.state.startSplit.timestamp), true);
 				buttonText = 'Complete';
 			}
 		}
 		return (
 			<div class={style.event}>
-				<div class='float-right text-right'>
-					{this.state.currentTime}<br/>
-					<small>{startTimeText}</small>
-					<div class={style.clock}>{clockReading}</div>
-				</div>
+				<Clock startTime={this.state.startSplit} isRunning={this.isRunning()} />
 				<h1><InlineInput
 					value={this.state.eventName}
 					propName='eventName'
@@ -234,12 +206,12 @@ export default class Event extends LuxComponent {
 					validate={this.validateEventName}
 					width="10em"
 					/></h1>
-				{startTimeText ? <div></div> : ''}
+				{this.isStarted() ? <div></div> : ''}
 				<div>
 					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
 					<Button color={buttonColor} onClick={this.handleStartEndResumeClick}>{buttonText}</Button>&nbsp;
 					{
-						startTimeText
+						this.isStarted()
 						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
 						: ''
 					}

@@ -20,7 +20,6 @@ class EventStore extends LuxMemStore {
 			eventName: null,
 			startSplit: null,
 			endSplit: null,
-			currentTime: null,
 			dateCreated: new Date(),
 			athletePerformances: []
 		};

@@ -1,4 +1,4 @@
-import { LuxMemStore, Lux } from './LuxStore';
+import { LuxLocalStore, Lux } from './LuxStore';
 
 let AthleteActions = Lux.createActions([
 	'deleteAthlete',
@@ -12,17 +12,16 @@ var keys = [
 	a => (a.organization && a.name) ? "/" + a.organization + "/" + a.name : undefined,
 	a => a.guid ? "/" + a.guid : undefined
 ]
-class AthleteStore extends LuxMemStore {
+class AthleteStore extends LuxLocalStore {
 	constructor(props = {}) {
 		super(props);
-		this._fields = ['state'];
 
 		this.state = {
-			guid: Lux.guid(),
-			name: null,
+			guid: (props.guid ? props.guid : Lux.guid()),
+			name: (props.name ? props.name : null),
 			avatar: null,
 
-			organization: null,
+			organization: (props.organization ? props.organization : null),
 			affiliations: [],
 
 			athletePerformances: [],
@@ -35,7 +34,6 @@ class AthleteStore extends LuxMemStore {
 
 			//TODO make sense of how we represent things stored in another object and things stored with this
 			//TODO ascertain fields from the state object once this is reorganized
-			_fields: ['guid','name','avatar','organization','affiliations','athletePerformances']
 		};
 
 		this.setActions(AthleteActions());
@@ -51,7 +49,7 @@ class AthleteStore extends LuxMemStore {
 		this.setState(attrs);
 	}
 	onAddAthleteToEvent(ap) {
-		console.log('onUpdateAthlete',arguments);
+		console.log('onAddAthleteToEvent',arguments);
 
 	}
 	onRecordAthleteSplit(ap, split) {

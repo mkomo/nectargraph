@@ -102,6 +102,32 @@ function createKeys(obj, kfs) {
 	return kfs.map(f=>f(obj)).filter(k=>k!==undefined);
 }
 
+function luxDelete(Proto, props) {
+	return __cache.delete(Proto, props);
+}
+
+function luxInit(ProtoOrArray){
+	if (Array.isArray(ProtoOrArray)) {
+		ProtoOrArray.forEach(P => luxInit(P));
+	} else {
+		var Proto = ProtoOrArray;
+		if (!('init' in Proto) || !Proto.init.__luxIsInitialized) {
+			var ProtoParent = Object.getPrototypeOf(Proto);
+			if (ProtoParent.prototype instanceof LuxAbstractStore || ProtoParent === LuxAbstractStore) {
+				luxInit(ProtoParent);
+			}
+
+			if (('init' in Proto && typeof Proto.init === 'function') && !Proto.init.__luxIsInitialized) {
+				console.log('init: calling init for Store', Proto.name);
+				Proto.init(Proto);
+				Proto.init.__luxIsInitialized = true;
+			} else {
+				console.log('init: no init for Store', Proto.name);
+			}
+		}
+	}
+}
+
 var Lux = {
 	createActions : function(actionNames) {
 		return function() {
@@ -133,7 +159,11 @@ var Lux = {
 		}
 	},
 
+	/**
+	 * entry point for updating an object
+	 */
 	get : function(Proto, props){
+		luxInit(Proto);
 		var keys = createKeys(props, Proto.keys);
 		console.debug('created keys', keys);
 		if (keys != null && keys.length > 0) {
@@ -148,24 +178,23 @@ var Lux = {
 		}
 		//either no keys or item not found in cache
 		var p = new Proto(props);
+		__cache.store(Proto, p);
 		//TODO separate isLoaded isErrored isSaved into some separate encapsulated property like athlete.lux.isLoaded or something
 		p.setState({isLoaded : true});
-		__cache.store(Proto, p);
 		return p;
 	},
 
 	list : function(Proto, filter) {
-		console.log('listing items with filter', filter);
+		luxInit(Proto);
+		console.debug('listing items with filter', filter);
 		return __cache.list(Proto, filter);
-	},
-
-	delete : function(Proto, props) {
-		return __cache.delete(Proto, props);
 	},
 
 	guid: uuidv4,
 
-	Component : LuxComponent
+	Component : LuxComponent,
+
+	init: luxInit
 };
 
 class LuxAbstractStore {
@@ -175,6 +204,9 @@ class LuxAbstractStore {
 		this.state = {};
 	}
 
+	/**
+	 * entry point for updating an object
+	 */
 	setState(obj) {
 		console.debug('LuxStore.setState()', obj);
 		this.components.forEach(function(c) {
@@ -207,7 +239,7 @@ class LuxAbstractStore {
 	}
 
 	delete() {
-		return Lux.delete(this.constructor, this);
+		return luxDelete(this.constructor, this);
 	}
 
 	_persist() {
@@ -232,10 +264,73 @@ class LuxMemStore extends LuxAbstractStore {
 	}
 }
 
+function copy(o, replacer, depth = 0, maxDepth = 2, filter = null) {
+	if (depth > 10) {
+		return;
+	}
+	if (typeof o === 'object') {
+		if (o === null || typeof o === 'undefined') {
+			return o;
+		} else if (o.constructor.prototype instanceof LuxAbstractStore) {
+			if (depth > maxDepth) {
+				return {
+					__luxObject: true,
+					type: o.constructor.name,
+					guid: o['__guid']
+				};
+			} else {
+				filter = ['state', '__guid'];
+			}
+		}
+		var output = Array.isArray(o) ? [] : {};
+		for (var key in o) {
+			if (!filter || filter.includes(key)) {
+				output[key] = copy(o[key], replacer, depth + 1);
+			}
+		}
+		return output;
+	} else {
+		return o;
+	}
+}
+
 class LuxLocalStore extends LuxMemStore {
 	constructor(props) {
 		super(props);
 	}
+
+	delete() {
+		super.delete();
+		this._persist();
+	}
+
+	_persist() {
+		// var rand = Lux.guid();
+		var type = this.constructor.name;
+		var cache = __cache.itemsByType;
+		var ids = {};
+		for (var t in cache) {
+			ids[t] = [];
+			for (var k in cache[t]) {
+				ids[t].push(cache[t][k]['__guid'])
+			}
+		}
+
+		console.log('updating local storage for type ' + this.constructor.name);
+		console.log(JSON.stringify(ids, null, 2));
+
+		var denested = copy(cache);
+
+		console.log(JSON.stringify(denested, null, 2));
+	}
+}
+
+
+
+LuxLocalStore.init = function(Proto){
+	console.log("LuxLocalStore: reading from LocalStorage:", Proto.name);
+	var localStorageKey = "Lux." + Proto.name;
+	var localStorageString = localStorage.getItem(localStorageKey);
 
 }
 

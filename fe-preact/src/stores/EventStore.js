@@ -1,4 +1,4 @@
-import { LuxMemStore, Lux } from './LuxStore';
+import { LuxLocalStore, Lux } from './LuxStore';
 
 let EventActions = Lux.createActions([
 	'startEvent',
@@ -11,7 +11,7 @@ var keys = [
 	a => a.guid ? "/" + a.guid : undefined,
 ]
 
-class EventStore extends LuxMemStore {
+class EventStore extends LuxLocalStore {
 	constructor(props = {}) {
 		console.debug('EventStore constructor', props);
 		super(props);
@@ -46,6 +46,10 @@ class EventStore extends LuxMemStore {
 }
 
 EventStore.keys = keys;
+
+EventStore.init = function(Proto){
+	console.log("inside EventStore init function");
+}
 
 export {
 	EventActions,

@@ -18,17 +18,17 @@ export default class List extends Component {
 	}
 
 	render() {
-		console.log('List.render()', this);
+		console.debug('List.render()', this);
 
 		var name = this.props.view.name;
-		var items = Lux.list(this.props.type.name, this.props.filter);
-		console.log('retrieved list of items:', items);
+		var items = Lux.list(this.props.type, this.props.filter);
+		console.debug('retrieved list of items:', items);
 		var views = [];
 		for (var key in items) {
 			var obj = {};
 			obj[this.props.type.name] = items[key];
 			obj['view'] = 'list';
-			console.log('rendering list item ', name, obj);
+			console.debug('rendering list item ', name, obj);
 			views.push(h(this.props.view, obj));
 		}
 		return (

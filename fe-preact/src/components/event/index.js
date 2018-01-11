@@ -198,7 +198,9 @@ export default class Event extends LuxComponent {
 		}
 		return (
 			<div class={style.event}>
-				<Clock startTime={this.state.startSplit} isRunning={this.isRunning()} />
+				<Clock startTime={this.state.startSplit}
+						endTime={this.state.endSplit}
+						isRunning={this.isRunning()}/>
 				<h1><InlineInput
 					value={this.state.eventName}
 					propName='eventName'

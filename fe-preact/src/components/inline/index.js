@@ -26,6 +26,7 @@ export default class InlineInput extends Component {
 	    this.setEditState = this.setEditState.bind(this);
 	    this.handleChange = this.handleChange.bind(this);
 	    this.handleSubmit = this.handleSubmit.bind(this);
+	    this.handleKeyUp = this.handleKeyUp.bind(this);
 	}
 	componentDidUpdate(){
 		if (this.state.inEdit) {
@@ -37,19 +38,27 @@ export default class InlineInput extends Component {
 		event.stopPropagation();
 		this.setState({inEdit : true, tempValue : this.state.value});
 	}
+	handleKeyUp(e) {
+		if (e.keyCode == 27) { // escape key maps to keycode `27`
+			this.setState({inEdit : false, tempValue : null});
+		}
+	}
 	handleChange(e) {
 		this.setState({tempValue : e.target.value});
 	}
 	handleSubmit(e) {
-		event.preventDefault();
-		event.stopPropagation();
-		this.setState({inEdit : false, value : e.target.value, tempValue: null});
-		if (this.state.propName != null) {
-			let updateObj = {};
-			updateObj[this.state.propName] = this.state.value;
-			this.state.onChange(updateObj);
-		} else {
-			this.state.onChange(this.state.value);
+		e.preventDefault();
+		e.stopPropagation();
+		if (this.state.inEdit) {
+			var newValue = this.state.tempValue;
+			this.setState({inEdit : false, value : newValue, tempValue: null});
+			if (this.state.propName != null) {
+				let updateObj = {};
+				updateObj[this.state.propName] = this.state.value;
+				this.state.onChange(updateObj);
+			} else {
+				this.state.onChange(this.state.value);
+			}
 		}
 	}
 
@@ -86,6 +95,7 @@ export default class InlineInput extends Component {
 					value={this.state.tempValue}
 					onInput={this.handleChange}
 					onBlur={this.handleSubmit}
+					onKeyUp={this.handleKeyUp}
 
 					style={this.state.width != null ? 'width:' + this.state.width : ''}
 					 />

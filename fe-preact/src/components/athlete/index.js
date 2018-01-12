@@ -1,5 +1,5 @@
 import { h, Component } from 'preact';
-import { Link } from 'preact-router';
+import { Link, route } from 'preact-router';
 import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
 import { AthleteStore } from '../../stores/AthleteStore';
@@ -17,6 +17,9 @@ export default class Athlete extends LuxComponent {
 			this.store = props.AthleteStore;
 		} else {
 			this.store = Lux.get(AthleteStore, props);
+		}
+		if (!('view' in this.props) || this.props['view'] == 'std') {
+			route('/athletes' + this.store.url(), true);
 		}
 		//TODO handle multiple stores (potentially with multiple overlapping stores)
 		this.actions = this.store.actions;

@@ -1,5 +1,5 @@
 import { h, Component } from 'preact';
-import { Link } from 'preact-router';
+import { Link, route } from 'preact-router';
 import style from './style.less';
 import { Button, Table, Fade } from 'reactstrap';
 import InlineInput from '../inline';
@@ -28,6 +28,9 @@ export default class Event extends LuxComponent {
 			this.store = props.EventStore;
 		} else {
 			this.store = Lux.get(EventStore, props);
+		}
+		if (!('view' in this.props) || this.props['view'] == 'std') {
+			route('/events' + this.store.url(), true);
 		}
 		//TODO handle multiple stores (potentially with multiple overlapping stores)
 		this.actions = this.store.actions;

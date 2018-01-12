@@ -28,6 +28,7 @@ export default class List extends Component {
 			var obj = {};
 			obj[this.props.type.name] = items[key];
 			obj['view'] = 'list';
+			obj['key'] = items[key].state.guid;
 			console.debug('rendering list item ', name, obj);
 			views.push(h(this.props.view, obj));
 		}

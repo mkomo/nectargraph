@@ -198,7 +198,7 @@ export default class Event extends LuxComponent {
 					<tfoot>
 					</tfoot>
 					<tbody>
-						{this.state.athletePerformances.map(p=>h(AthletePerformance, {PerformanceStore: p}))}
+						{this.state.athletePerformances.map(p=>h(AthletePerformance, {PerformanceStore: p, key: p.state.guid}))}
 					</tbody>
 				</Table>
 			</div>

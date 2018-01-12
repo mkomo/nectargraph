@@ -143,6 +143,7 @@ export default class Event extends LuxComponent {
 						value={this.state.eventName}
 						onChange={this.actions.updateEvent}
 						propName="eventName"
+						placeholder={this.state.guid.substring(0,8)}
 						width="10em"
 						/>
 				</Link></span>
@@ -170,7 +171,7 @@ export default class Event extends LuxComponent {
 					value={this.state.eventName}
 					propName='eventName'
 					onChange={this.updateState}
-					validate={this.validateEventName}
+					placeholder={this.state.guid.substring(0,8)}
 					width="10em"
 					/></h1>
 				{this.store.isStarted() ? <div></div> : ''}

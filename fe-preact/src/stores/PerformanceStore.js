@@ -39,12 +39,6 @@ class PerformanceStore extends LuxLocalStore {
 		this.setActions(PerformanceActions());
 	}
 
-	onDeletePerformance() {
-		console.debug('onDeletePerformance');
-		this.delete();
-		this.setState({deleted: true});
-	}
-
 	onSetAthlete(athlete) {
 		console.debug('onSetAthlete',arguments);
 		this.setState({athlete: athlete});

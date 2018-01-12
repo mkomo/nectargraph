@@ -30,6 +30,7 @@ export default class AthletePerformance extends LuxComponent {
 		this.updateBib = this.updateBib.bind(this);
 		this.updateName = this.updateName.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
+		this.deletePerformance = this.deletePerformance.bind(this);
 	}
 
 	addSplit(split) {
@@ -95,6 +96,11 @@ export default class AthletePerformance extends LuxComponent {
 		this.state.athlete.actions.updateAthlete({name: name});
 	}
 
+	deletePerformance() {
+		console.log('deleting performance', this);
+		this.actions.deletePerformance()
+	}
+
 	render() {
 		var classes = `${style.user_cell} ${style.vcenter}`;
 		var isStarted = this.state.event.isStarted();
@@ -114,13 +120,14 @@ export default class AthletePerformance extends LuxComponent {
 						? (<InlineInput
 							value={this.state.athlete.state.name}
 							onChange={this.updateName}
+							placeholder={this.state.athlete.state.guid.substring(0,8)}
 							width="15em"
 							/>)
 						: "[deleted athlete]"
 					}
 					<StoreSearch type={AthleteStore} field="name" />
 					<Button className={style.list_entry_action} color="link"
-							onClick={this.actions.deletePerformance}>
+							onClick={this.deletePerformance}>
 						<i class="fa fa-trash" aria-hidden="true"></i>
 					</Button>
 				</td>

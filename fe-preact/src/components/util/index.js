@@ -1,5 +1,11 @@
+class Split {
+	constructor(timestamp=new Date().getTime()) {
+		this.span = 1;
+		this.timestamp = timestamp;
+	}
+}
 
-export default class Util {
+class Util {
 
 	serializeToJson(obj, indent = null) {
 		return JSON.stringify(obj, function(key, value) {
@@ -40,4 +46,8 @@ export default class Util {
 			}
 		};
 	})();
+}
+export {
+	Util,
+	Split
 }

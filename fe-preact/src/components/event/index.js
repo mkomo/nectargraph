@@ -9,18 +9,12 @@ import Clock from '../clock';
 import { Lux } from '../../stores/LuxStore'
 import { EventStore } from '../../stores/EventStore'
 import { AthleteStore } from '../../stores/AthleteStore'
+import { PerformanceStore } from '../../stores/PerformanceStore'
 
 import 'bootstrap/dist/css/bootstrap.css';
 
-import Util from '../util';
+import { Util, Split } from '../util';
 var util = new Util();
-
-class Split {
-	constructor(timestamp=new Date().getTime()) {
-		this.span = 1;
-		this.timestamp = timestamp;
-	}
-}
 
 var LuxComponent = Lux.Component.extend(Component);
 
@@ -38,44 +32,20 @@ export default class Event extends LuxComponent {
 		//TODO handle multiple stores (potentially with multiple overlapping stores)
 		this.actions = this.store.actions;
 
-		//TODO remove this -- for debugging
-		window.event = this;
-
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
-		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.handleResetClick = this.handleResetClick.bind(this);
 		this.updateState = this.updateState.bind(this);
 
 	}
 
-	//TODO remove this in favor of LuxStore persisting
-	loadFromObject(o) {
-		var asArray = o.athletePerformances.map(function(ap) {
-			var aso = new AthletePerformance(this, Lux.get(AthleteStore,ap.athlete), ap.bibNumber, ap.displayName);
-			aso.splits = ap.splits;
-			return aso;
-		}, this);
-		this.actions.updateEvent({
-			startSplit: o.startSplit,
-			athletePerformances: asArray
-		});
-	}
-
-	handleAthleteClick(ap) {
-		if (this.state.startSplit != null) {
-			ap.addSplit(new Split());
-		} else {
-			//TODO rename
-		}
-	}
-
 	handleResetClick() {
 		if (!confirm('Are you sure you want to reset event?')) return;
 		this.state.athletePerformances.forEach(function(ap) {
-			ap.splits = [];
+			ap.setState({splits : []});
 		});
+
 		this.actions.updateEvent({
 			startSplit: null,
 			endSplit: null
@@ -92,7 +62,7 @@ export default class Event extends LuxComponent {
 		} else {
 			var split = new Split();
 			this.state.athletePerformances.forEach(function(ap) {
-				ap.splits = [split];
+				ap.setState({splits : [split]});
 			});
 			this.actions.updateEvent({ startSplit: split });
 		}
@@ -100,14 +70,14 @@ export default class Event extends LuxComponent {
 
 	handleAddAthlete() {
 		var athletePerformances = this.state.athletePerformances;
-		var bibNumber = athletePerformances.map(a => a.bibNumber).reduce(function(a, b) {
+		var bibNumber = athletePerformances.map(a => a.state.bibNumber).reduce(function(a, b) {
 			return Math.max(a, b);
 		}, 0) + 1;
 		//TODO create athlete object
 		var athlete = Lux.get(AthleteStore,{});
-		var ap = new AthletePerformance(this, athlete, bibNumber);
+		var ap = Lux.get(PerformanceStore, {event: this.store, athlete: athlete, bibNumber: bibNumber});
 		if (this.state.startSplit != null) {
-			ap.addSplit(this.state.startSplit);
+			ap.actions.recordSplit(this.state.startSplit);
 		}
 		athletePerformances.push(ap);
 		this.actions.updateEvent({ athletePerformances: athletePerformances });
@@ -217,7 +187,6 @@ export default class Event extends LuxComponent {
 						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
 						: ''
 					}
-					<Button color="link" onClick={e=>console.log(util.serializeToJson(this.state, 2))}>debug</Button>
 				</div>
 				<Table hover responsive>
 					<thead>
@@ -233,7 +202,7 @@ export default class Event extends LuxComponent {
 					<tfoot>
 					</tfoot>
 					<tbody>
-						{this.state.athletePerformances.map(p=>p.render())}
+						{this.state.athletePerformances.map(p=>h(AthletePerformance, {PerformanceStore: p}))}
 					</tbody>
 				</Table>
 			</div>

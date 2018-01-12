@@ -40,24 +40,24 @@ class AthleteStore extends LuxLocalStore {
 	}
 
 	onDeleteAthlete() {
-		console.log('onDeleteAthlete');
+		console.debug('onDeleteAthlete');
 		this.delete();
 		this.setState({deleted: true});
 	}
 	onUpdateAthlete(attrs) {
-		console.log('onUpdateAthlete',arguments);
+		console.debug('onUpdateAthlete',arguments);
 		this.setState(attrs);
 	}
 	onAddAthleteToEvent(ap) {
-		console.log('onAddAthleteToEvent',arguments);
+		console.debug('onAddAthleteToEvent',arguments);
 
 	}
 	onRecordAthleteSplit(ap, split) {
-		console.log('onRecordAthleteSplit',arguments);
+		console.debug('onRecordAthleteSplit',arguments);
 
 	}
 	onDeleteAthleteSplit(ap, split) {
-		console.log('onDeleteAthleteSplit',arguments);
+		console.debug('onDeleteAthleteSplit',arguments);
 
 	}
 }
@@ -65,7 +65,6 @@ class AthleteStore extends LuxLocalStore {
 AthleteStore.keys = keys;
 
 export {
-	AthleteActions,
 	AthleteStore
 }
 

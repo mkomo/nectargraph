@@ -1,7 +1,7 @@
 import { h, Component } from 'preact';
 import style from './style.less';
 
-import Util from '../util';
+import { Util } from '../util';
 var util = new Util();
 
 export default class Clock extends Component {

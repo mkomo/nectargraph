@@ -264,10 +264,7 @@ class LuxMemStore extends LuxAbstractStore {
 	}
 }
 
-function copy(o, replacer, depth = 0, maxDepth = 2, filter = null) {
-	if (depth > 10) {
-		return;
-	}
+function luxCacheFlatten(o, replacer, depth = 0, maxDepth = 2, filter = null) {
 	if (typeof o === 'object') {
 		if (o === null || typeof o === 'undefined') {
 			return o;
@@ -285,7 +282,7 @@ function copy(o, replacer, depth = 0, maxDepth = 2, filter = null) {
 		var output = Array.isArray(o) ? [] : {};
 		for (var key in o) {
 			if (!filter || filter.includes(key)) {
-				output[key] = copy(o[key], replacer, depth + 1);
+				output[key] = luxCacheFlatten(o[key], replacer, depth + 1);
 			}
 		}
 		return output;
@@ -305,8 +302,6 @@ class LuxLocalStore extends LuxMemStore {
 	}
 
 	_persist() {
-		// var rand = Lux.guid();
-		var type = this.constructor.name;
 		var cache = __cache.itemsByType;
 		var ids = {};
 		for (var t in cache) {
@@ -317,11 +312,12 @@ class LuxLocalStore extends LuxMemStore {
 		}
 
 		console.log('updating local storage for type ' + this.constructor.name);
-		console.log(JSON.stringify(ids, null, 2));
+		// console.log(JSON.stringify(ids, null, 2));
 
-		var denested = copy(cache);
-
-		console.log(JSON.stringify(denested, null, 2));
+		var denested = luxCacheFlatten(cache);
+		var localStorageName = luxLocalStorageName();
+		localStorage.setItem(localStorageName, JSON.stringify(denested, null, 2));
+		// console.log(JSON.stringify(denested, null, 2));
 	}
 }
 

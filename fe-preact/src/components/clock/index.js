@@ -9,7 +9,7 @@ export default class Clock extends Component {
 	constructor(props) {
 		super(props);
 		console.debug('new Clock()',props);
-		this.state = {};
+		this.state = props;
 	}
 
 	// update the current time

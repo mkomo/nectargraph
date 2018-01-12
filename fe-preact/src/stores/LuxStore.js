@@ -5,6 +5,8 @@ function uuidv4() {
 	);
 }
 
+const LUX_GUID_KEY = '__guid';
+
 class LuxCache {
 	constructor() {
 		this.synonymsByType = {};
@@ -40,13 +42,13 @@ class LuxCache {
 	store(type, value) {
 		var keys = createKeys(value.state, type.keys);
 		type = this.normalizeType(type);
-		console.log('storing item with created keys',type, keys, value);
-		if (!value.__guid) {
-			value.__guid = uuidv4();
+		console.log('storing item with created keys',type);
+		if (!value[LUX_GUID_KEY]) {
+			value[LUX_GUID_KEY] = uuidv4();
 		}
-		this.itemsByType[type][value.__guid] = value;
+		this.itemsByType[type][value[LUX_GUID_KEY]] = value;
 		for (var i = 0; i < keys.length; i++) {
-			this.synonymsByType[type][keys[i]] = value.__guid;
+			this.synonymsByType[type][keys[i]] = value[LUX_GUID_KEY];
 		}
 		return keys;
 	}
@@ -55,16 +57,16 @@ class LuxCache {
 		var keys = createKeys(value.state, type.keys);
 		type = this.normalizeType(type);
 		keys.forEach(k=>{
-			delete this.synonymsByType[type][value.__guid];
+			delete this.synonymsByType[type][value[LUX_GUID_KEY]];
 		});
-		delete this.itemsByType[type][value.__guid];
+		delete this.itemsByType[type][value[LUX_GUID_KEY]];
 	}
 
 	rehome(type, oldkeys, value) {
 		var newkeys = this.store(type, value);
 		type = this.normalizeType(type);
 		oldkeys.filter(k => !newkeys.includes(k)).forEach(k=>{
-			delete this.synonymsByType[type][value.__guid];
+			delete this.synonymsByType[type][value[LUX_GUID_KEY]];
 		})
 	}
 }
@@ -106,20 +108,21 @@ function luxDelete(Proto, props) {
 	return __cache.delete(Proto, props);
 }
 
-function luxInit(ProtoOrArray){
+function luxInit(ProtoOrArray, arr=null){
 	if (Array.isArray(ProtoOrArray)) {
-		ProtoOrArray.forEach(P => luxInit(P));
+		ProtoOrArray.forEach(P => luxInit(P, ProtoOrArray));
 	} else {
 		var Proto = ProtoOrArray;
+		arr = arr ? arr : [Proto];
 		if (!('init' in Proto) || !Proto.init.__luxIsInitialized) {
 			var ProtoParent = Object.getPrototypeOf(Proto);
 			if (ProtoParent.prototype instanceof LuxAbstractStore || ProtoParent === LuxAbstractStore) {
-				luxInit(ProtoParent);
+				luxInit(ProtoParent, arr);
 			}
 
 			if (('init' in Proto && typeof Proto.init === 'function') && !Proto.init.__luxIsInitialized) {
 				console.log('init: calling init for Store', Proto.name);
-				Proto.init(Proto);
+				Proto.init(Proto, arr);
 				Proto.init.__luxIsInitialized = true;
 			} else {
 				console.log('init: no init for Store', Proto.name);
@@ -264,7 +267,11 @@ class LuxMemStore extends LuxAbstractStore {
 	}
 }
 
-function luxCacheFlatten(o, replacer, depth = 0, maxDepth = 2, filter = null) {
+function luxLocalStorageName() {
+	return '__lux_store';
+}
+
+function luxCacheFlatten(o, depth = 0, maxDepth = 2, filter = null) {
 	if (typeof o === 'object') {
 		if (o === null || typeof o === 'undefined') {
 			return o;
@@ -273,21 +280,39 @@ function luxCacheFlatten(o, replacer, depth = 0, maxDepth = 2, filter = null) {
 				return {
 					__luxObject: true,
 					type: o.constructor.name,
-					guid: o['__guid']
+					guid: o[LUX_GUID_KEY]
 				};
 			} else {
-				filter = ['state', '__guid'];
+				filter = ['state', LUX_GUID_KEY];
 			}
 		}
 		var output = Array.isArray(o) ? [] : {};
 		for (var key in o) {
 			if (!filter || filter.includes(key)) {
-				output[key] = luxCacheFlatten(o[key], replacer, depth + 1);
+				output[key] = luxCacheFlatten(o[key], depth + 1);
 			}
 		}
 		return output;
 	} else {
 		return o;
+	}
+}
+
+function luxCacheEmboss(o, root, depth = 0, parent, key) {
+	if (typeof o !== 'object' || o === null || typeof o === 'undefined') {
+		// console.log(depth + ' '.repeat(depth), '!!!!!!!!!!!!!', k, o);
+	} else if ('__luxObject' in o) {
+		// console.log('found and lux object', o, root[o.type][o.guid]);
+		var replacement = root[o.type][o.guid];
+		if (replacement) {
+			parent[key] = replacement;
+		} else {
+			console.log('failed to find replacement', o);
+		}
+	} else {
+		for (var k in o) {
+			luxCacheEmboss(o[k], root, depth + 1, o, k);
+		}
 	}
 }
 
@@ -303,31 +328,52 @@ class LuxLocalStore extends LuxMemStore {
 
 	_persist() {
 		var cache = __cache.itemsByType;
-		var ids = {};
-		for (var t in cache) {
-			ids[t] = [];
-			for (var k in cache[t]) {
-				ids[t].push(cache[t][k]['__guid'])
-			}
-		}
 
 		console.log('updating local storage for type ' + this.constructor.name);
-		// console.log(JSON.stringify(ids, null, 2));
 
 		var denested = luxCacheFlatten(cache);
 		var localStorageName = luxLocalStorageName();
 		localStorage.setItem(localStorageName, JSON.stringify(denested, null, 2));
-		// console.log(JSON.stringify(denested, null, 2));
+		console.debug('saved local storage', JSON.stringify(denested, null, 2));
 	}
 }
 
+LuxLocalStore.init = function(Proto, arr){
+	console.log("LuxLocalStore: reading from LocalStorage:", Proto.name, arr.map(P=>P.name));
+	var localStorageName = luxLocalStorageName();
+	var localStorageString = localStorage.getItem(localStorageName);
 
+	var plainItems = JSON.parse(localStorageString);
+	console.debug('items', plainItems);
 
-LuxLocalStore.init = function(Proto){
-	console.log("LuxLocalStore: reading from LocalStorage:", Proto.name);
-	var localStorageKey = "Lux." + Proto.name;
-	var localStorageString = localStorage.getItem(localStorageKey);
+	var types = {};
+	arr.forEach(a=>{types[a.name] = a});
 
+	console.debug('starting with empty cache', __cache);
+	var flatItems = {};
+	for (var type in plainItems) {
+		flatItems[type] = {};
+		for (var i in plainItems[type]) {
+			var P = types[type];
+			var item = new P({});
+			item.state = plainItems[type][i]['state'];
+			item[LUX_GUID_KEY] = i;
+			flatItems[type][i] = item;
+		}
+	}
+
+	luxCacheEmboss(flatItems, flatItems);
+	var embossed = flatItems;
+
+	console.debug('fully embossed', embossed);
+	for (var type in embossed) {
+		for (var i in embossed[type]) {
+			var P = types[type];
+			__cache.store(P, embossed[type][i]);
+		}
+	}
+
+	console.log('populated cache', __cache);
 }
 
 class LuxRestStore extends LuxMemStore {

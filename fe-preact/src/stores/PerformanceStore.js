@@ -5,7 +5,8 @@ let PerformanceActions = Lux.createActions([
 	'setAthlete',
 	'setBibNumber',
 	'recordSplit',
-	'deleteSplit'
+	'deleteSplit',
+	'deletePerformance'
 ]);
 
 var keys = [
@@ -43,14 +44,17 @@ class PerformanceStore extends LuxLocalStore {
 		this.delete();
 		this.setState({deleted: true});
 	}
+
 	onSetAthlete(athlete) {
 		console.debug('onSetAthlete',arguments);
 		this.setState({athlete: athlete});
 	}
+
 	onSetBibNumber(bib) {
 		console.debug('onSetBibNumber',arguments);
 		this.setState({bibNumber: bib});
 	}
+
 	onRecordSplit(split) {
 		console.debug('onRecordAthleteSplit',arguments);
 		this.state.splits.push(split);
@@ -58,13 +62,21 @@ class PerformanceStore extends LuxLocalStore {
 			splits: this.state.splits
 		})
 	}
+
 	onDeleteSplit(index) {
-		console.debug('onDeleteAthleteSplit',arguments);
+		console.debug('onDeleteSplit',arguments);
 		var s = this.state.splits.slice();
 		s.splice(index, 1);
 		this.setState({
 			splits: s
 		})
+	}
+
+	onDeletePerformance() {
+		console.log('onDeletePerformance');
+		this.state.event.actions.removePerformanceFromEvent(this);
+		this.delete();
+		this.setState({deleted: true});
 	}
 }
 

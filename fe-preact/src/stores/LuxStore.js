@@ -44,7 +44,7 @@ class LuxCache {
 		type = this.normalizeType(type);
 		console.log('storing item with created keys',type);
 		if (!value[LUX_GUID_KEY]) {
-			value[LUX_GUID_KEY] = uuidv4();
+			value[LUX_GUID_KEY] = value.state.guid ? value.state.guid : uuidv4();
 		}
 		this.itemsByType[type][value[LUX_GUID_KEY]] = value;
 		for (var i = 0; i < keys.length; i++) {
@@ -105,6 +105,7 @@ function createKeys(obj, kfs) {
 }
 
 function luxDelete(Proto, props) {
+	//TODO cascade
 	return __cache.delete(Proto, props);
 }
 
@@ -242,6 +243,7 @@ class LuxAbstractStore {
 	}
 
 	delete() {
+		//TODO cascade delete, possibly with a function on the object like actions
 		return luxDelete(this.constructor, this);
 	}
 

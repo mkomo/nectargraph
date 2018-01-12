@@ -4,7 +4,8 @@ let EventActions = Lux.createActions([
 	'startEvent',
 	'endEvent',
 	'updateEvent',
-	'deleteEvent'
+	'deleteEvent',
+	'removePerformanceFromEvent'
 ]);
 
 var keys = [
@@ -16,7 +17,8 @@ class EventStore extends LuxLocalStore {
 		console.debug('EventStore constructor', props);
 		super(props);
 		this.state = {
-			guid: Lux.guid(),
+			//TODO handle not found
+			guid: (props.guid ? props.guid : Lux.guid()),
 			eventName: null,
 			startSplit: null,
 			endSplit: null,
@@ -40,8 +42,24 @@ class EventStore extends LuxLocalStore {
 
 	onDeleteEvent() {
 		console.log('onDeleteEvent');
+		this.state.athletePerformances.forEach(p=>p.actions.deletePerformance());
 		this.delete();
-		this.setState({deleted: true});
+		this.setState({deleted: true, athletePerformances: []});
+	}
+
+	onRemovePerformanceFromEvent(performance) {
+		console.log('onRemovePerformanceFromEvent', performance, this.state.athletePerformances);
+		this.setState({
+			athletePerformances: this.state.athletePerformances.filter(p=>(p.state.guid !== performance.state.guid))
+		})
+	}
+
+	isStarted() {
+		return this.state.startSplit != null;
+	}
+
+	isRunning() {
+		return this.state.startSplit != null && this.state.endSplit == null;
 	}
 }
 

@@ -2,10 +2,7 @@ import { LuxLocalStore, Lux } from './LuxStore';
 
 let AthleteActions = Lux.createActions([
 	'deleteAthlete',
-	'updateAthlete',
-	'addAthleteToEvent',
-	'recordAthleteSplit',
-	'deleteAthleteSplit'
+	'updateAthlete'
 ]);
 
 var keys = [
@@ -47,18 +44,6 @@ class AthleteStore extends LuxLocalStore {
 	onUpdateAthlete(attrs) {
 		console.debug('onUpdateAthlete',arguments);
 		this.setState(attrs);
-	}
-	onAddAthleteToEvent(ap) {
-		console.debug('onAddAthleteToEvent',arguments);
-
-	}
-	onRecordAthleteSplit(ap, split) {
-		console.debug('onRecordAthleteSplit',arguments);
-
-	}
-	onDeleteAthleteSplit(ap, split) {
-		console.debug('onDeleteAthleteSplit',arguments);
-
 	}
 }
 

@@ -1,9 +1,12 @@
 import { h, Component } from 'preact';
 import { Util, Split } from '../util';
 import InlineInput from '../inline';
+import StoreSearch from '../search';
 import style from './style.less';
-import { Lux } from '../../stores/LuxStore'
-import { PerformanceStore } from '../../stores/PerformanceStore'
+import { Lux } from '../../stores/LuxStore';
+import { PerformanceStore } from '../../stores/PerformanceStore';
+import { AthleteStore } from '../../stores/AthleteStore';
+import { Button, Fade } from 'reactstrap';
 
 var util = new Util();
 
@@ -39,16 +42,17 @@ export default class AthletePerformance extends LuxComponent {
 
 	get completedLaps() {
 		//TODO consider split spans
-		return this.store.state.splits.length > 0 ? this.store.state.splits.length - 1 : '-';
+		return this.state.splits.length > 0 ? this.state.splits.length - 1 : '-';
 	}
 
 	get splitElements() {
+		var splits = this.state.splits;
 		var elts = [];
-		for (let i = 0; i < this.store.state.splits.length; i++) {
-			var lapTime = this.store.state.splits[i].timestamp - (i == 0
+		for (let i = 0; i < splits.length; i++) {
+			var lapTime = splits[i].timestamp - (i == 0
 						? this.state.event.state.startSplit.timestamp
-						: this.store.state.splits[i-1].timestamp);
-			var splitTime = this.store.state.splits[i].timestamp - this.store.state.splits[0].timestamp
+						: splits[i-1].timestamp);
+			var splitTime = splits[i].timestamp - splits[0].timestamp
 			elts.push((
 				<td style="padding: 0 5px">
 					<a href="" onClick={(e)=>{/*TODO*/e.preventDefault()}}>{util.formatDuration(lapTime)}</a>
@@ -63,9 +67,9 @@ export default class AthletePerformance extends LuxComponent {
 
 	get currentLapTime() {
 		//TODO consider split spans
-		if (this.store.state.splits.length > 0) {
-			var ts = this.store.state.splits[this.store.state.splits.length - 1].timestamp;
-			var ts0 = this.store.state.splits[0].timestamp;
+		if (this.state.splits.length > 0) {
+			var ts = this.state.splits[this.state.splits.length - 1].timestamp;
+			var ts0 = this.state.splits[0].timestamp;
 			return (
 				<div>
 					{util.formatDuration(new Date().getTime() - ts)}<br/>
@@ -76,10 +80,8 @@ export default class AthletePerformance extends LuxComponent {
 	}
 
 	handleAthleteClick() {
-		if (this.state.event.state.startSplit != null) {
+		if (this.state.event.isRunning()) {
 			this.actions.recordSplit(new Split());
-		} else {
-			//TODO rename
 		}
 	}
 
@@ -90,29 +92,37 @@ export default class AthletePerformance extends LuxComponent {
 	updateName(name) {
 		//this.displayName = name;
 		console.debug('updateName',this);
-		this.store.state.athlete.actions.updateAthlete({name: name});
+		this.state.athlete.actions.updateAthlete({name: name});
 	}
 
 	render() {
 		var classes = `${style.user_cell} ${style.vcenter}`;
-		var isStarted = this.state.event.state.startSplit ? true : false;
-		var isRunning = isStarted && (this.state.event.state.endSplit ? false : true);
+		var isStarted = this.state.event.isStarted();
+		var isRunning = this.state.event.isRunning();
 		if (isRunning) {
 			classes += ` ${style.user_link}`
 		}
 		return (
 			<tr>
 				<td class={style.vcenter}><InlineInput
-					value={this.store.state.bibNumber}
+					value={this.state.bibNumber}
 					onChange={this.updateBib}
 					width="3em"
 					/></td>
 				<td class={classes} onClick={this.handleAthleteClick}>
-					<InlineInput
-						value={this.store.state.athlete.state.name}
-						onChange={this.updateName}
-						width="15em"
-						/>
+					{this.state.athlete.state
+						? (<InlineInput
+							value={this.state.athlete.state.name}
+							onChange={this.updateName}
+							width="15em"
+							/>)
+						: "[deleted athlete]"
+					}
+					<StoreSearch type={AthleteStore} field="name" />
+					<Button className={style.list_entry_action} color="link"
+							onClick={this.actions.deletePerformance}>
+						<i class="fa fa-trash" aria-hidden="true"></i>
+					</Button>
 				</td>
 				{isStarted ? <td class={style.vcenter}></td> : ''}
 				{isStarted ? <td class={style.vcenter}>{this.completedLaps}</td> : ''}

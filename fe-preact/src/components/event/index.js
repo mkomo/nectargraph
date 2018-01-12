@@ -95,14 +95,6 @@ export default class Event extends LuxComponent {
 		this.actions.updateEvent(changes);
 	}
 
-	isStarted() {
-		return this.state.startSplit != null;
-	}
-
-	isRunning() {
-		return this.state.startSplit != null && this.state.endSplit == null;
-	}
-
 	render() {
 		console.debug('Event.render',this.state);
 		return (!('view' in this.props) || this.props['view'] == 'std')
@@ -138,8 +130,8 @@ export default class Event extends LuxComponent {
 					</Button>
 				</div>
 				<span>
-					{this.isStarted()
-						? (this.isRunning()
+					{this.store.isStarted()
+						? (this.store.isRunning()
 							? <i class="fa fa-hourglass-half" aria-hidden="true"></i>
 							: <i class="fa fa-check-circle" aria-hidden="true"></i>
 						)
@@ -162,8 +154,8 @@ export default class Event extends LuxComponent {
 	renderLoaded() {
 		let buttonText = 'Start Timer';
 		let buttonColor = 'secondary';
-		if (this.isStarted()) {
-			if (!this.isRunning()) {
+		if (this.store.isStarted()) {
+			if (!this.store.isRunning()) {
 				buttonText = 'Resume';
 			} else {
 				buttonText = 'Complete';
@@ -173,7 +165,7 @@ export default class Event extends LuxComponent {
 			<div class={style.event}>
 				<Clock startTime={this.state.startSplit}
 						endTime={this.state.endSplit}
-						isRunning={this.isRunning()}/>
+						isRunning={this.store.isRunning()}/>
 				<h1><InlineInput
 					value={this.state.eventName}
 					propName='eventName'
@@ -181,12 +173,12 @@ export default class Event extends LuxComponent {
 					validate={this.validateEventName}
 					width="10em"
 					/></h1>
-				{this.isStarted() ? <div></div> : ''}
+				{this.store.isStarted() ? <div></div> : ''}
 				<div>
 					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
 					<Button color={buttonColor} onClick={this.handleStartEndResumeClick}>{buttonText}</Button>&nbsp;
 					{
-						this.isStarted()
+						this.store.isStarted()
 						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
 						: ''
 					}
@@ -196,10 +188,10 @@ export default class Event extends LuxComponent {
 						<tr>
 							<th>&nbsp;<br/>Bib{/* bib */}</th>
 							<th>Athlete&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
-							{this.isStarted() ? <th>Place{/* Position */}</th> : ''}
-							{this.isStarted() ? <th>Laps{/* what lap is this user on? */}</th> : ''}
-							{this.isRunning() ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
-							{this.isStarted() ? <th><span>{this.isRunning() ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
+							{this.store.isStarted() ? <th>Place{/* Position */}</th> : ''}
+							{this.store.isStarted() ? <th>Laps{/* what lap is this user on? */}</th> : ''}
+							{this.store.isRunning() ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
+							{this.store.isStarted() ? <th><span>{this.store.isRunning() ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
 					</thead>
 					<tfoot>

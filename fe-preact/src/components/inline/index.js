@@ -16,6 +16,7 @@ export default class InlineInput extends Component {
 		super(props);
 		this.state = {
 			placeholder: '(empty)',
+			showAlways: false,
 			inEdit: false
 		};
 		this.stateFromProps(props);
@@ -32,6 +33,8 @@ export default class InlineInput extends Component {
 		if ('validate' in props) newState['validate'] = props['validate'];
 		if ('width' in props) newState['width'] = props['width'];
 		if ('placeholder' in props) newState['placeholder'] = props['placeholder'];
+		if ('showAlways' in props) newState['showAlways'] = props['showAlways'];
+
 		this.setState(newState);
 	}
 	componentDidUpdate(){
@@ -91,10 +94,12 @@ export default class InlineInput extends Component {
 	}
 
 	renderValue() {
+		var iconClass = style.text_action + " fa fa-pencil";
+		iconClass += (this.state.showAlways) ? (" " + style.text_action_show) : "";
 		return (
 			<span class={style.editable} style={this.valueStyle()}>
 				{this.valueWithPlaceholder()}
-				<i onClick={this.setEditState} class="fa fa-pencil" aria-hidden="true"></i>
+				<i onClick={this.setEditState} class={iconClass} aria-hidden="true"></i>
 			</span>
 		);
 	}

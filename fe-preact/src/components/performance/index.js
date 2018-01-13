@@ -63,7 +63,7 @@ export default class AthletePerformance extends LuxComponent {
 				</td>
 			));
 		}
-		return (<table><tr>{elts}</tr></table>);
+		return (<table class={style.nested_table}><tr>{elts}</tr></table>);
 	}
 
 	get currentLapTime() {
@@ -105,11 +105,12 @@ export default class AthletePerformance extends LuxComponent {
 		var classes = `${style.user_cell} ${style.vcenter}`;
 		var isStarted = this.state.event.isStarted();
 		var isRunning = this.state.event.isRunning();
+		var icon_classes = "fa fa-trash " + style.text_action;
 		if (isRunning) {
 			classes += ` ${style.user_link}`
 		}
 		return (
-			<tr>
+			<tr class={style.hoverable}>
 				<td class={style.vcenter}><InlineInput
 					value={this.state.bibNumber}
 					onChange={this.updateBib}
@@ -126,10 +127,10 @@ export default class AthletePerformance extends LuxComponent {
 						: "[deleted athlete]"
 					}
 					<StoreSearch type={AthleteStore} field="name" />
-					<Button className={style.list_entry_action} color="link"
+					<span
 							onClick={this.deletePerformance}>
-						<i class="fa fa-trash" aria-hidden="true"></i>
-					</Button>
+						<i class={icon_classes} aria-hidden="true"></i>
+					</span>
 				</td>
 				{isStarted ? <td class={style.vcenter}></td> : ''}
 				{isStarted ? <td class={style.vcenter}>{this.completedLaps}</td> : ''}

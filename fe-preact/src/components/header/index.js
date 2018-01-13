@@ -42,8 +42,16 @@ export default class Header extends Component {
 								</Link>
 							</NavItem>
 							<NavItem>
-								<Link href="/events?live" className="nav-link">
+								<Link href="/athlete" className="nav-link">
+									<i class="fa fa-plus" aria-hidden="true"></i> athlete
+								</Link>
+							</NavItem>
+							<NavItem>
+								{/*<Link href="/events?live" className="nav-link">
 									<i>live</i>
+								</Link>*/}
+								<Link href="/events" className="nav-link">
+									events
 								</Link>
 							</NavItem>
 							<NavItem>

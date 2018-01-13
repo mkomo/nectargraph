@@ -129,6 +129,7 @@ export default class Event extends LuxComponent {
 		parent meet?
 		athlete count?
 		 */
+		var rowClass = style.hoverable + " " + style.list_entry;
 		return (
 			<div class={style.list_entry}>
 				<div class="pull-right">
@@ -153,6 +154,7 @@ export default class Event extends LuxComponent {
 						propName="eventName"
 						placeholder={this.state.guid.substring(0,8)}
 						width="10em"
+						showAlways
 						/>
 				</Link></span>
 				<span></span>
@@ -181,6 +183,7 @@ export default class Event extends LuxComponent {
 					onChange={this.updateState}
 					placeholder={this.state.guid.substring(0,8)}
 					width="10em"
+					showAlways
 					/></h1>
 				{this.store.isStarted() ? <div></div> : ''}
 				<div>

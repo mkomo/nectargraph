@@ -84,6 +84,7 @@ export default class Athlete extends LuxComponent {
 						placeholder={this.state.guid.substring(0,8)}
 						propName="name"
 						width="10em"
+						showAlways
 						/>
 				</Link></span>
 			</div>
@@ -99,6 +100,7 @@ export default class Athlete extends LuxComponent {
 					placeholder={this.state.guid.substring(0,8)}
 					propName="name"
 					width="15em"
+					showAlways
 					/></h1>
 				<p>This is the athlete profile for <b>{this.state.name}</b>.</p>
 				<button onClick={e=>(console.log(this.store))}>debug</button>

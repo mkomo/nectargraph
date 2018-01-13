@@ -60,13 +60,16 @@ export default class InlineInput extends Component {
 		e.stopPropagation();
 		if (this.state.inEdit) {
 			var newValue = this.state.tempValue;
+			var oldValue = this.state.value;
 			this.setState({inEdit : false, value : newValue, tempValue: null});
-			if (this.state.propName != null) {
-				let updateObj = {};
-				updateObj[this.state.propName] = this.state.value;
-				this.state.onChange(updateObj);
-			} else {
-				this.state.onChange(this.state.value);
+			if (newValue != oldValue) {
+				if (this.state.propName != null) {
+					let updateObj = {};
+					updateObj[this.state.propName] = this.state.value;
+					this.state.onChange(updateObj);
+				} else {
+					this.state.onChange(this.state.value);
+				}
 			}
 		}
 	}

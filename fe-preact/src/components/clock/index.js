@@ -35,12 +35,11 @@ export default class Clock extends Component {
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
-		console.debug('componentWillReceiveProps', nextProps, nextState);
+		//TODO decompose this so it's more clear what's needed
 		this.setState(nextProps);
 	}
 
 	render() {
-		console.debug('render', this.state);
 		let runningClockText = null;
 		let startTimeText = null;
 		let endTimeText = null;

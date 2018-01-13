@@ -85,8 +85,13 @@ LuxComponent.extend = function(Proto) {
 		setState(obj) {
 			return super.setState(obj);
 		}
-		componentWillMount() {
-			//TODO handle multiple stores
+		setStore(store) {
+			if (this.store) {
+				this.store.unregister(this);
+			}
+			this.store = store;
+			//TODO handle multiple stores (potentially with multiple overlapping actions)
+			this.actions = this.store.actions;
 			if (this.store) {
 				this.store.register(this);
 			}

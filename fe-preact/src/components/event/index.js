@@ -24,23 +24,31 @@ export default class Event extends LuxComponent {
 		super(props);
 
 		this.state = {};
-		if (props && 'EventStore' in props) {
-			this.store = props.EventStore;
-		} else {
-			this.store = Lux.get(EventStore, props);
-		}
-		if (!('view' in this.props) || this.props['view'] == 'std') {
-			route('/events' + this.store.url(), true);
-		}
-		//TODO handle multiple stores (potentially with multiple overlapping stores)
-		this.actions = this.store.actions;
+		this.setStore(props);
 
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
 		this.handleResetClick = this.handleResetClick.bind(this);
 		this.updateState = this.updateState.bind(this);
+	}
 
+	componentWillReceiveProps(nextProps, nextState) {
+		if (!nextProps.guid || nextProps.guid !== this.state.guid) {
+			console.log("reloading event", nextProps);
+			this.setStore(nextProps);
+		}
+	}
+
+	setStore(props) {
+		if (props && 'EventStore' in props) {
+			super.setStore(props.EventStore);
+		} else {
+			super.setStore(Lux.get(EventStore, props));
+		}
+		if (!('view' in this.props) || this.props['view'] == 'std') {
+			route('/events' + this.store.url(), true);
+		}
 	}
 
 	handleResetClick() {

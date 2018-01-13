@@ -15,23 +15,32 @@ export default class InlineInput extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			value: props.value,
-			propName: props.propName,
-			onChange: props.onChange,
-			validate: props.validate,
-			width: props.width,
-			placeholder: 'placeholder' in props ? props.placeholder : '(empty)',
+			placeholder: '(empty)',
 			inEdit: false
 		};
-	    this.setEditState = this.setEditState.bind(this);
-	    this.handleChange = this.handleChange.bind(this);
-	    this.handleSubmit = this.handleSubmit.bind(this);
-	    this.handleKeyUp = this.handleKeyUp.bind(this);
+		this.stateFromProps(props);
+		this.setEditState = this.setEditState.bind(this);
+		this.handleChange = this.handleChange.bind(this);
+		this.handleSubmit = this.handleSubmit.bind(this);
+		this.handleKeyUp = this.handleKeyUp.bind(this);
+	}
+	stateFromProps(props){
+		var newState = {};
+		if ('value' in props) newState['value'] = props['value'];
+		if ('propName' in props) newState['propName'] = props['propName'];
+		if ('onChange' in props) newState['onChange'] = props['onChange'];
+		if ('validate' in props) newState['validate'] = props['validate'];
+		if ('width' in props) newState['width'] = props['width'];
+		if ('placeholder' in props) newState['placeholder'] = props['placeholder'];
+		this.setState(newState);
 	}
 	componentDidUpdate(){
 		if (this.state.inEdit) {
 			this.textInput.focus();
 		}
+	}
+	componentWillReceiveProps(nextProps) {
+		this.stateFromProps(nextProps);
 	}
 	setEditState(e) {
 		event.preventDefault();

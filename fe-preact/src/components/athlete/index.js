@@ -13,16 +13,25 @@ export default class Athlete extends LuxComponent {
 		console.debug('Athlete constructor',props);
 		super(props);
 		this.state = {};
+		this.setStore(props);
+	}
+
+	componentWillReceiveProps(nextProps, nextState) {
+		if (!nextProps.guid || nextProps.guid !== this.state.guid) {
+			console.debug("reloading Athlete", nextProps);
+			this.setStore(nextProps);
+		}
+	}
+
+	setStore(props) {
 		if (props && 'AthleteStore' in props) {
-			this.store = props.AthleteStore;
+			super.setStore(props.AthleteStore);
 		} else {
-			this.store = Lux.get(AthleteStore, props);
+			super.setStore(Lux.get(AthleteStore, props));
 		}
 		if (!('view' in this.props) || this.props['view'] == 'std') {
 			route('/athletes' + this.store.url(), true);
 		}
-		//TODO handle multiple stores (potentially with multiple overlapping stores)
-		this.actions = this.store.actions;
 	}
 
 	deleteAthlete(e) {

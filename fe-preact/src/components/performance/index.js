@@ -19,9 +19,9 @@ export default class AthletePerformance extends LuxComponent {
 
 		this.state = {};
 		if (props && 'PerformanceStore' in props) {
-			this.store = props.PerformanceStore;
+			this.setStore(props.PerformanceStore);
 		} else {
-			this.store = Lux.get(PerformanceStore, props);
+			this.setStore(Lux.get(PerformanceStore, props));
 		}
 
 		//TODO handle multiple stores (potentially with multiple overlapping stores)

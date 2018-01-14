@@ -126,14 +126,20 @@ export default class AthletePerformance extends LuxComponent {
 					width="3em"
 					/></td>
 				<td class={classes} onClick={this.handleAthleteClick}>
-					{this.state.athlete.state
-						? (<InlineInput
-							value={this.state.athlete.state.name}
-							onChange={this.updateName}
-							placeholder={this.state.athlete.state.guid.substring(0,8)}
-							width="15em"
-							/>)
-						: "[deleted athlete]"
+					{this.state.athlete.state && !this.state.athlete.state.deleted
+						? (<span>
+								{this.state.athlete.state.avatar
+									? <span><img width="18" height="18" src={this.state.athlete.state.avatar} />&nbsp;</span>
+									: <span></span>
+								}
+								<InlineInput
+								value={this.state.athlete.state.name}
+								onChange={this.updateName}
+								placeholder={this.state.athlete.state.guid.substring(0,8)}
+								width="15em"
+								/>
+							</span>)
+						: (<span>[deleted athlete]</span>)
 					}
 					<StoreSearch type={AthleteStore} view={Athlete} field="name" onSelectItem={this.replaceAthlete}/>
 					<span

@@ -3,7 +3,7 @@ import { Link, route } from 'preact-router';
 import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
 import { AthleteStore } from '../../stores/AthleteStore';
-import { Button } from 'reactstrap';
+import { Button, ButtonGroup, Media } from 'reactstrap';
 import InlineInput from '../inline';
 
 var LuxComponent = Lux.Component.extend(Component);
@@ -14,6 +14,9 @@ export default class Athlete extends LuxComponent {
 		super(props);
 		this.state = {};
 		this.setStore(props);
+		this.updateAvatar = this.updateAvatar.bind(this);
+		this.uploadAvatar = this.uploadAvatar.bind(this);
+		this.deleteAvatar = this.deleteAvatar.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -32,6 +35,25 @@ export default class Athlete extends LuxComponent {
 		if (!('view' in this.props) || this.props['view'] == 'std') {
 			route('/athletes' + this.store.url(), true);
 		}
+	}
+
+	uploadAvatar(file) {
+		var input = file.target;
+		var reader = new FileReader();
+		var store = this.store;
+		reader.onload = function(){
+			var dataUrl = reader.result;
+			store.setState({avatar: dataUrl});
+		};
+		reader.readAsDataURL(input.files[0]);
+	}
+
+	deleteAvatar() {
+		this.store.setState({avatar: null});
+	}
+
+	updateAvatar() {
+		this.actions.updateAvatar();
 	}
 
 	render() {
@@ -59,7 +81,12 @@ export default class Athlete extends LuxComponent {
 		 */
 		return (
 <div>
-	<span class={style.list_entry_elt}><i class="fa fa-user" aria-hidden="true"></i></span>
+	<span class={style.list_entry_elt}>
+		{this.state.avatar
+			? <img width="36" height="36" src={this.state.avatar} />
+			: (<div class={style.icon_container}><i class="fa fa-user" aria-hidden="true"></i></div>)
+		}
+	</span>
 	<span class={style.list_entry_elt}>
 		{ this.props.noActions
 			? (this.state.name ? this.state.name : this.state.guid.substring(0,8))
@@ -70,8 +97,7 @@ export default class Athlete extends LuxComponent {
 					propName="name"
 					placeholder={this.state.guid.substring(0,8)}
 					width="10em"
-					showAlways
-					/>
+					showAlways />
 			</Link>)
 		}
 	</span>
@@ -80,18 +106,42 @@ export default class Athlete extends LuxComponent {
 	}
 
 	renderLoaded() {
+		var avatarSize = 100;
 		return (
 			<div class={style.profile}>
-				<h1><InlineInput
-					value={this.state.name}
-					onChange={this.actions.updateAthlete}
-					placeholder={this.state.guid.substring(0,8)}
-					propName="name"
-					width="15em"
-					showAlways
-					/></h1>
-				<p>This is the athlete profile for <b>{this.state.name}</b>.</p>
-				<button onClick={e=>(console.log(this.store))}>debug</button>
+<Media>
+	<Media left>
+		{this.state.avatar
+			? <Media object width={avatarSize} height={avatarSize} src={this.state.avatar} />
+			: <div class={style.icon_container_large}><i class="fa fa-user" aria-hidden="true"></i></div>
+		}
+		<div class={style.avatar_actions}>
+			<Button color="secondary" size="sm" onClick={this.updateAvatar}>
+				<i class="fa fa-refresh" aria-hidden="true"></i></Button>
+			<label class="btn btn-secondary btn-sm">
+				<i class="fa fa-upload" aria-hidden="true"></i>
+				<input type="file" accept='image/*' style="display: none;" onChange={this.uploadAvatar}/>
+			</label>
+			<Button color="secondary" size="sm" onClick={this.deleteAvatar}>
+				<i class="fa fa-trash" aria-hidden="true"></i></Button>
+		</div>
+	</Media>
+	<Media body>
+		<Media tag="h1">
+			<InlineInput
+				value={this.state.name}
+				onChange={this.actions.updateAthlete}
+				placeholder={this.state.guid.substring(0,8)}
+				propName="name"
+				width="15em"
+				showAlways
+				/>
+		</Media>
+		<Media>
+			This is the profile for the athlete named '{this.state.name}'
+		</Media>
+	</Media>
+</Media>
 			</div>
 		);
 	}

@@ -8,25 +8,35 @@ export default class StoreSearch extends Component {
 
 	constructor(props) {
 		super(props);
-		console.log('StoreSearch', props);
+		console.debug('StoreSearch', props);
 		this.state = {
 			modal: false,
 			type: props.type,
-			view: props.view
+			view: props.view,
+			onSelectItem: props.onSelectItem
 		};
 
 		this.toggle = this.toggle.bind(this);
+		this.setOpen = this.setOpen.bind(this);
+		this.select = this.select.bind(this);
 	}
 
 	toggle() {
-		console.log(this);
+		this.setOpen(!this.state.modal);
+	}
+
+	setOpen(open) {
 		this.setState({
-			modal: !this.state.modal
+			modal: open
 		});
 	}
 
-	select(){
-
+	select(item){
+		console.debug('calling select', arguments);
+		if (this.state.onSelectItem) {
+			this.state.onSelectItem(item);
+		}
+		this.setOpen(false);
 	}
 
 	render() {
@@ -39,11 +49,10 @@ export default class StoreSearch extends Component {
 					<ModalBody>
 						<List type={this.state.type}
 							view={this.state.view}
-							noActions
-							onClickItem={this.select} />
+							onClickItem={this.select}
+							noActions />
 					</ModalBody>
 					<ModalFooter>
-						<Button color="primary" onClick={this.toggle}>Update</Button>{' '}
 						<Button color="secondary" onClick={this.toggle}>Cancel</Button>
 					</ModalFooter>
 				</Modal>

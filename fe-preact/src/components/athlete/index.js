@@ -3,7 +3,7 @@ import { Link, route } from 'preact-router';
 import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
 import { AthleteStore } from '../../stores/AthleteStore';
-import { Button, Fade } from 'reactstrap';
+import { Button } from 'reactstrap';
 import InlineInput from '../inline';
 
 var LuxComponent = Lux.Component.extend(Component);
@@ -49,12 +49,7 @@ export default class Athlete extends LuxComponent {
 		var name = this.state.name ? this.state.name : '(unnamed athlete)';
 
 		if (this.state.deleted) {
-				return (
-					<Fade in={false} tag="div" className={style.list_entry}
-							unmountOnExit
-							onEnter={e=>(console.log('enter', new Date()))}
-							onExit={e=>{console.log('exit', new Date())}}>deleted</Fade>
-				);
+				return '';
 		}
 
 		/**
@@ -65,16 +60,21 @@ export default class Athlete extends LuxComponent {
 		return (
 <div>
 	<span class={style.list_entry_elt}><i class="fa fa-user" aria-hidden="true"></i></span>
-	<span class={style.list_entry_elt}><Link href={href}>
-		<InlineInput
-			value={this.state.name}
-			onChange={this.actions.updateAthlete}
-			propName="name"
-			placeholder={this.state.guid.substring(0,8)}
-			width="10em"
-			showAlways
-			/>
-	</Link></span>
+	<span class={style.list_entry_elt}>
+		{ this.props.noActions
+			? (this.state.name ? this.state.name : this.state.guid.substring(0,8))
+			: (<Link href={href}>
+				<InlineInput
+					value={this.state.name}
+					onChange={this.actions.updateAthlete}
+					propName="name"
+					placeholder={this.state.guid.substring(0,8)}
+					width="10em"
+					showAlways
+					/>
+			</Link>)
+		}
+	</span>
 </div>
 		);
 	}

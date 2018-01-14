@@ -10,6 +10,8 @@ export default class List extends Component {
 		console.log('new list', props);
 		this.state = {};
 		this.updateFromProps(props);
+
+		this.handleItemClick = this.handleItemClick.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps) {
@@ -23,6 +25,7 @@ export default class List extends Component {
 			filter: props.filter,
 			noActions: props.noActions,
 			deleteAction: props.deleteAction,
+			onClickItem: props.onClickItem,
 			//update items at the same time or else you'll cause an error with items that don't match their type
 			items: this.fetchItems(props)
 		});
@@ -32,6 +35,12 @@ export default class List extends Component {
 		return Lux.list(obj.type, obj.filter);
 	}
 
+	handleItemClick(item) {
+		if (this.state.onClickItem) {
+			return this.state.onClickItem(item);
+		}
+	}
+
 	render() {
 		console.debug('List.render()', this);
 
@@ -39,6 +48,7 @@ export default class List extends Component {
 		var items = this.state.items;
 		console.debug('retrieved list of items:', items);
 		var views = [];
+		var itemStyle = style.list_entry + (this.state.onClickItem ? (' ' + style.list_entry_clickable) : '');
 		for (let key in items) {
 			var obj = {};
 			obj[this.state.type.name] = items[key];
@@ -46,7 +56,7 @@ export default class List extends Component {
 			obj['noActions'] = this.state.noActions;
 			obj['key'] = items[key].state.guid;
 			views.push((
-				<div class={style.list_entry} key={key}>
+				<div class={itemStyle} onClick={e=>this.handleItemClick(items[key])} key={key}>
 					{
 						this.state.deleteAction && !this.state.noActions
 						? (<div class="pull-right">

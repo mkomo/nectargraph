@@ -32,6 +32,7 @@ export default class AthletePerformance extends LuxComponent {
 		this.updateName = this.updateName.bind(this);
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.deletePerformance = this.deletePerformance.bind(this);
+		this.replaceAthlete = this.replaceAthlete.bind(this);
 	}
 
 	addSplit(split) {
@@ -97,9 +98,14 @@ export default class AthletePerformance extends LuxComponent {
 		this.state.athlete.actions.updateAthlete({name: name});
 	}
 
+	replaceAthlete(nextAthlete){
+		console.debug('replaceAthlete', arguments);
+		this.store.setState({athlete: nextAthlete});
+	}
+
 	deletePerformance() {
 		if (this.state.splits.length == 0 || confirm('Are you sure you want to delete this performance?')) {
-			console.log('deleting performance', this);
+			console.debug('deleting performance', this);
 			this.actions.deletePerformance();
 		}
 	}
@@ -129,7 +135,7 @@ export default class AthletePerformance extends LuxComponent {
 							/>)
 						: "[deleted athlete]"
 					}
-					<StoreSearch type={AthleteStore} view={Athlete} field="name" />
+					<StoreSearch type={AthleteStore} view={Athlete} field="name" onSelectItem={this.replaceAthlete}/>
 					<span
 							onClick={this.deletePerformance}>
 						<i class={icon_classes} aria-hidden="true"></i>

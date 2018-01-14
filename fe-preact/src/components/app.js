@@ -43,8 +43,8 @@ export default class App extends Component {
 						<Event path="/events/:guid" />
 						<Meet path="/meets/:guid" />
 
-						<List path="/athletes" type={AthleteStore} view={Athlete}/>
-						<List path="/events" type={EventStore} view={Event}/>
+						<List path="/athletes" type={AthleteStore} view={Athlete} deleteAction="deleteAthlete"/>
+						<List path="/events" type={EventStore} view={Event} deleteAction="deleteEvent"/>
 						<List path="/meets" type={Meet}/>
 					</Router>
 				</div>

@@ -35,7 +35,7 @@ export default class Event extends LuxComponent {
 
 	componentWillReceiveProps(nextProps, nextState) {
 		if (!nextProps.guid || nextProps.guid !== this.state.guid) {
-			console.log("reloading event", nextProps);
+			console.debug("reloading event", nextProps);
 			this.setStore(nextProps);
 		}
 	}
@@ -131,34 +131,27 @@ export default class Event extends LuxComponent {
 		 */
 		var rowClass = style.hoverable + " " + style.list_entry;
 		return (
-			<div class={style.list_entry}>
-				<div class="pull-right">
-					<Button className={style.list_entry_action} color="link"
-							onClick={e=>(this.deleteEvent())}>
-						<i class="fa fa-trash" aria-hidden="true"></i>
-					</Button>
-				</div>
-				<span>
-					{this.store.isStarted()
-						? (this.store.isRunning()
-							? <i class="fa fa-hourglass-half" aria-hidden="true"></i>
-							: <i class="fa fa-check-circle" aria-hidden="true"></i>
-						)
-						: <i class="fa fa-clock-o" aria-hidden="true"></i>
-					}
-				</span>
-				<span><Link href={href}>
-					<InlineInput
-						value={this.state.eventName}
-						onChange={this.actions.updateEvent}
-						propName="eventName"
-						placeholder={this.state.guid.substring(0,8)}
-						width="10em"
-						showAlways
-						/>
-				</Link></span>
-				<span></span>
-			</div>
+<div>
+	<span class={style.list_entry_elt}>
+		{this.store.isStarted()
+			? (this.store.isRunning()
+				? <i class="fa fa-hourglass-half" aria-hidden="true"></i>
+				: <i class="fa fa-check-circle" aria-hidden="true"></i>
+			)
+			: <i class="fa fa-clock-o" aria-hidden="true"></i>
+		}
+	</span>
+	<span class={style.list_entry_elt}><Link href={href}>
+		<InlineInput
+			value={this.state.name}
+			onChange={this.actions.updateEvent}
+			propName="name"
+			placeholder={this.state.guid.substring(0,8)}
+			width="10em"
+			showAlways
+			/>
+	</Link></span>
+</div>
 		);
 	}
 
@@ -178,8 +171,8 @@ export default class Event extends LuxComponent {
 						endTime={this.state.endSplit}
 						isRunning={this.store.isRunning()}/>
 				<h1><InlineInput
-					value={this.state.eventName}
-					propName='eventName'
+					value={this.state.name}
+					propName='name'
 					onChange={this.updateState}
 					placeholder={this.state.guid.substring(0,8)}
 					width="10em"

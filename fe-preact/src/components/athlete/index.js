@@ -34,12 +34,6 @@ export default class Athlete extends LuxComponent {
 		}
 	}
 
-	deleteAthlete(e) {
-		//TODO add confirm
-		this.actions.deleteAthlete();
-		return true;
-	}
-
 	render() {
 		console.debug('Athlete.render',this.state);
 		return !this.state.isLoaded
@@ -69,25 +63,19 @@ export default class Athlete extends LuxComponent {
 		organizations/affiliations
 		 */
 		return (
-			<div class={style.list_entry}>
-				<div class="pull-right">
-					<Button className={style.list_entry_action} color="link"
-							onClick={e=>(this.deleteAthlete())}>
-						<i class="fa fa-trash" aria-hidden="true"></i>
-					</Button>
-				</div>
-				<span><i class="fa fa-user" aria-hidden="true"></i></span>
-				<span><Link href={href}>
-					<InlineInput
-						value={this.state.name}
-						onChange={this.actions.updateAthlete}
-						placeholder={this.state.guid.substring(0,8)}
-						propName="name"
-						width="10em"
-						showAlways
-						/>
-				</Link></span>
-			</div>
+<div>
+	<span class={style.list_entry_elt}><i class="fa fa-user" aria-hidden="true"></i></span>
+	<span class={style.list_entry_elt}><Link href={href}>
+		<InlineInput
+			value={this.state.name}
+			onChange={this.actions.updateAthlete}
+			propName="name"
+			placeholder={this.state.guid.substring(0,8)}
+			width="10em"
+			showAlways
+			/>
+	</Link></span>
+</div>
 		);
 	}
 

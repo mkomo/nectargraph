@@ -6,6 +6,7 @@ import style from './style.less';
 import { Lux } from '../../stores/LuxStore';
 import { PerformanceStore } from '../../stores/PerformanceStore';
 import { AthleteStore } from '../../stores/AthleteStore';
+import Athlete from '../../components/athlete';
 import { Button, Fade } from 'reactstrap';
 
 var util = new Util();
@@ -97,8 +98,10 @@ export default class AthletePerformance extends LuxComponent {
 	}
 
 	deletePerformance() {
-		console.log('deleting performance', this);
-		this.actions.deletePerformance()
+		if (this.state.splits.length == 0 || confirm('Are you sure you want to delete this performance?')) {
+			console.log('deleting performance', this);
+			this.actions.deletePerformance();
+		}
 	}
 
 	render() {
@@ -126,7 +129,7 @@ export default class AthletePerformance extends LuxComponent {
 							/>)
 						: "[deleted athlete]"
 					}
-					<StoreSearch type={AthleteStore} field="name" />
+					<StoreSearch type={AthleteStore} view={Athlete} field="name" />
 					<span
 							onClick={this.deletePerformance}>
 						<i class={icon_classes} aria-hidden="true"></i>

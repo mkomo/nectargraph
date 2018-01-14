@@ -19,7 +19,7 @@ class EventStore extends LuxLocalStore {
 		this.state = {
 			//TODO handle not found
 			guid: (props.guid ? props.guid : Lux.guid()),
-			eventName: null,
+			name: null,
 			startSplit: null,
 			endSplit: null,
 			dateCreated: new Date(),

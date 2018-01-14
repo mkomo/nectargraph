@@ -1,6 +1,6 @@
 import { h, Component } from 'preact';
-import { AthleteStore } from '../../stores/AthleteStore'
-import { Lux } from '../../stores/LuxStore'
+import { Lux } from '../../stores/LuxStore';
+import { Button } from 'reactstrap';
 import style from './style.less';
 
 export default class List extends Component {
@@ -8,33 +8,64 @@ export default class List extends Component {
 	constructor(props) {
 		super(props);
 		console.log('new list', props);
-		window.list = this;
+		this.state = {};
+		this.updateFromProps(props);
 	}
 
-	componentDidMount() {
+	componentWillReceiveProps(nextProps) {
+		this.updateFromProps(nextProps);
 	}
 
-	componentWillUnmount() {
+	updateFromProps(props) {
+		this.setState({
+			view: props.view,
+			type: props.type,
+			filter: props.filter,
+			noActions: props.noActions,
+			deleteAction: props.deleteAction,
+			//update items at the same time or else you'll cause an error with items that don't match their type
+			items: this.fetchItems(props)
+		});
+	}
+
+	fetchItems(obj) {
+		return Lux.list(obj.type, obj.filter);
 	}
 
 	render() {
 		console.debug('List.render()', this);
 
-		var name = this.props.view.name;
-		var items = Lux.list(this.props.type, this.props.filter);
+		var name = this.state.view.name;
+		var items = this.state.items;
 		console.debug('retrieved list of items:', items);
 		var views = [];
-		for (var key in items) {
+		for (let key in items) {
 			var obj = {};
-			obj[this.props.type.name] = items[key];
+			obj[this.state.type.name] = items[key];
 			obj['view'] = 'list';
+			obj['noActions'] = this.state.noActions;
 			obj['key'] = items[key].state.guid;
-			console.debug('rendering list item ', name, obj);
-			views.push(h(this.props.view, obj));
+			views.push((
+				<div class={style.list_entry} key={key}>
+					{
+						this.state.deleteAction && !this.state.noActions
+						? (<div class="pull-right">
+								<Button className={style.list_entry_action} color="link"
+										onClick={e=>{
+											items[key].actions[this.state.deleteAction]();
+											this.setState({items : this.fetchItems(this.state)})
+										}}>
+									<i class="fa fa-trash" aria-hidden="true"></i>
+								</Button>
+							</div>)
+						: ''
+					}
+					{ h(this.state.view, obj) }
+				</div>));
 		}
 		return (
 			<div class={style.list}>
-				<h1>{name} List</h1>
+				{ this.state.noActions ? '' : (<h1>{name} List</h1>)}
 				{/*TODO add canned filters, add search above list*/}
 				{views}
 			</div>

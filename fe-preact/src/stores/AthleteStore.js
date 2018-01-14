@@ -37,7 +37,7 @@ class AthleteStore extends LuxLocalStore {
 	}
 
 	onDeleteAthlete() {
-		console.debug('onDeleteAthlete');
+		console.debug('onDeleteAthlete', this.state.guid);
 		this.delete();
 		this.setState({deleted: true});
 	}

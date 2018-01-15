@@ -58,10 +58,14 @@ export default class AthletePerformance extends LuxComponent {
 			var splitTime = splits[i].timestamp - splits[0].timestamp
 			elts.push((
 				<td style="padding: 0 5px">
-					<a href="" onClick={(e)=>{/*TODO*/e.preventDefault()}}>{util.formatDuration(lapTime)}</a>
-					<a href="" onClick={(e)=>{this.deleteSplit(i); e.preventDefault()}}><sup>x</sup></a>
+					<a onClick={(e)=>{/*TODO*/e.preventDefault()}}>{util.formatDuration(lapTime)}</a>
+					{
+						!this.props.noActions
+							? <a href="" onClick={(e)=>{this.deleteSplit(i); e.preventDefault()}}><sup>x</sup></a>
+							: ''
+					}
 					<br/>
-					<a href="" onClick={(e)=>{e.preventDefault()}}>{util.formatDuration(splitTime)}</a>
+					<a onClick={(e)=>{e.preventDefault()}}>{util.formatDuration(splitTime)}</a>
 				</td>
 			));
 		}
@@ -111,7 +115,11 @@ export default class AthletePerformance extends LuxComponent {
 	}
 
 	render() {
-		var classes = `${style.user_cell} ${style.vcenter}`;
+		if (this.props.view == 'list') {
+			return this.renderList();
+		}
+		console.log('render performance',this.props);
+		var classes = `${style.vcenter}`;
 		var isStarted = this.state.event.isStarted();
 		var isRunning = this.state.event.isRunning();
 		var icon_classes = "fa fa-trash " + style.text_action;
@@ -152,6 +160,16 @@ export default class AthletePerformance extends LuxComponent {
 				{isRunning ? <td>{this.currentLapTime}</td> : ''}
 				{isStarted ? <td class="small">{this.splitElements}</td> : ''}
 			</tr>
+		);
+	}
+
+	renderList() {
+		return (
+			<div>
+				<span>{this.state.event.state.name}</span> -
+				<span>{new Date(this.state.event.state.startSplit.timestamp).toLocaleString()}</span>
+				{this.splitElements}
+			</div>
 		);
 	}
 }

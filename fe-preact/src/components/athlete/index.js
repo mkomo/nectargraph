@@ -1,10 +1,13 @@
 import { h, Component } from 'preact';
 import { Link, route } from 'preact-router';
-import style from './style.less';
+import List from '../list';
 import { Lux } from '../../stores/LuxStore';
 import { AthleteStore } from '../../stores/AthleteStore';
-import { Button, ButtonGroup, Media } from 'reactstrap';
+import { PerformanceStore } from '../../stores/PerformanceStore';
+import AthletePerformance from '../performance';
+import { Button, ButtonGroup, Media, Container, Row, Col } from 'reactstrap';
 import InlineInput from '../inline';
+import style from './style.less';
 
 var LuxComponent = Lux.Component.extend(Component);
 
@@ -17,6 +20,7 @@ export default class Athlete extends LuxComponent {
 		this.updateAvatar = this.updateAvatar.bind(this);
 		this.uploadAvatar = this.uploadAvatar.bind(this);
 		this.deleteAvatar = this.deleteAvatar.bind(this);
+		this.goToEvent = this.goToEvent.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -56,6 +60,10 @@ export default class Athlete extends LuxComponent {
 		this.actions.updateAvatar();
 	}
 
+	goToEvent(performance) {
+		console.log('goToEvent', arguments);
+		route('/events' + performance.state.event.url(), true);
+	}
 	render() {
 		console.debug('Athlete.render',this.state);
 		return !this.state.isLoaded
@@ -109,39 +117,63 @@ export default class Athlete extends LuxComponent {
 		var avatarSize = 100;
 		return (
 			<div class={style.profile}>
-<Media>
-	<Media left>
-		{this.state.avatar
-			? <Media object width={avatarSize} height={avatarSize} src={this.state.avatar} />
-			: <div class={style.icon_container_large}><i class="fa fa-user" aria-hidden="true"></i></div>
-		}
-		<div class={style.avatar_actions}>
-			<Button color="secondary" size="sm" onClick={this.updateAvatar}>
-				<i class="fa fa-refresh" aria-hidden="true"></i></Button>
-			<label class="btn btn-secondary btn-sm">
-				<i class="fa fa-upload" aria-hidden="true"></i>
-				<input type="file" accept='image/*' style="display: none;" onChange={this.uploadAvatar}/>
-			</label>
-			<Button color="secondary" size="sm" onClick={this.deleteAvatar}>
-				<i class="fa fa-trash" aria-hidden="true"></i></Button>
-		</div>
-	</Media>
-	<Media body>
-		<Media tag="h1">
-			<InlineInput
-				value={this.state.name}
-				onChange={this.actions.updateAthlete}
-				placeholder={this.state.guid.substring(0,8)}
-				propName="name"
-				width="15em"
-				showAlways
-				/>
-		</Media>
-		<Media>
-			This is the profile for the athlete named '{this.state.name}'
-		</Media>
-	</Media>
-</Media>
+				<Media>
+					<Media left>
+						{this.state.avatar
+							? <Media object width={avatarSize} height={avatarSize} src={this.state.avatar} />
+							: <div class={style.icon_container_large}><i class="fa fa-user" aria-hidden="true"></i></div>
+						}
+						<div class={style.avatar_actions}>
+							<Button color="secondary" size="sm" onClick={this.updateAvatar}>
+								<i class="fa fa-refresh" aria-hidden="true"></i></Button>
+							<label class="btn btn-secondary btn-sm">
+								<i class="fa fa-upload" aria-hidden="true"></i>
+								<input type="file" accept='image/*' style="display: none;" onChange={this.uploadAvatar}/>
+							</label>
+							<Button color="secondary" size="sm" onClick={this.deleteAvatar}>
+								<i class="fa fa-trash" aria-hidden="true"></i></Button>
+						</div>
+					</Media>
+					<Media body>
+						{/*
+							user page
+							Performances
+						*/}
+						<Container>
+							<Row>
+								<Col>
+									<h1>
+										<InlineInput
+											value={this.state.name}
+											onChange={this.actions.updateAthlete}
+											placeholder={this.state.guid.substring(0,8)}
+											propName="name"
+											width="15em"
+											showAlways
+											/>
+									</h1>
+								</Col>
+							</Row>
+							<Row>
+								<Col sm="3" xs="12" className="small">full name</Col>
+								<Col xs="auto">{this.state.name}</Col>
+							</Row>
+							<Row>
+								<Col sm="3" xs="12" className="small">organization</Col>
+								<Col xs="auto">{this.state.organization ? this.state.organization : (<span class="text-muted">(none)</span>)}</Col>
+							</Row>
+							<Row>
+								<Col sm="3" xs="12" className="small">affiliations</Col>
+								<Col xs="auto">{this.state.affiliations.length ? this.state.affiliations : (<span class="text-muted">(none)</span>)}</Col>
+							</Row>
+						</Container>
+					</Media>
+				</Media>
+				<h2>Performances</h2>
+				<List type={PerformanceStore} view={AthletePerformance}
+					onClickItem={this.goToEvent}
+					noActions
+					fields={['event', 'totalTime', 'date']} />
 			</div>
 		);
 	}

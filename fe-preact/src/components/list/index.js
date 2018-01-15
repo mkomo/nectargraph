@@ -54,6 +54,7 @@ export default class List extends Component {
 			obj[this.state.type.name] = items[key];
 			obj['view'] = 'list';
 			obj['noActions'] = this.state.noActions;
+			obj['listProps'] = this.props;
 			obj['key'] = items[key].state.guid;
 			views.push((
 				<div class={itemStyle} onClick={e=>this.handleItemClick(items[key])} key={key}>

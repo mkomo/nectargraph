@@ -4,7 +4,7 @@ import style from './style.less';
 export default class Meet extends Component {
 	state = {};
 
-	// Note: `user` comes from the URL, courtesy of our router
+	//TODO meet templates, meet planner
 	render() {
 		return (
 			<div class={style.workout}>

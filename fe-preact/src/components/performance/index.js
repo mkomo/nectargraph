@@ -118,7 +118,6 @@ export default class AthletePerformance extends LuxComponent {
 		if (this.props.view == 'list') {
 			return this.renderList();
 		}
-		console.log('render performance',this.props);
 		var classes = `${style.vcenter}`;
 		var isStarted = this.state.event.isStarted();
 		var isRunning = this.state.event.isRunning();
@@ -150,8 +149,7 @@ export default class AthletePerformance extends LuxComponent {
 						: (<span>[deleted athlete]</span>)
 					}
 					<StoreSearch type={AthleteStore} view={Athlete} field="name" onSelectItem={this.replaceAthlete}/>
-					<span
-							onClick={this.deletePerformance}>
+					<span onClick={this.deletePerformance}>
 						<i class={icon_classes} aria-hidden="true"></i>
 					</span>
 				</td>
@@ -164,10 +162,15 @@ export default class AthletePerformance extends LuxComponent {
 	}
 
 	renderList() {
+		//TODO add place for completed events, scheduled time, event distance/deets
+		var es = this.state.event.state;
+		var icon_classes = "fa " + this.state.event.icon();
+		console.log(icon_classes);
 		return (
 			<div>
-				<span>{this.state.event.state.name}</span> -
-				<span>{new Date(this.state.event.state.startSplit.timestamp).toLocaleString()}</span>
+				<span><i class={icon_classes} aria-hidden="true"></i> {es.name}</span>
+				<span> - </span>
+				<span class={!es.startSplit ? "text-muted small" : ""}>{es.startSplit ? new Date(es.startSplit.timestamp).toLocaleString() : '(not run yet)'}</span>
 				{this.splitElements}
 			</div>
 		);

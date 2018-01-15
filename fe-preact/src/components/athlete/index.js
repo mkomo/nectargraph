@@ -172,8 +172,9 @@ export default class Athlete extends LuxComponent {
 				<h2>Performances</h2>
 				<List type={PerformanceStore} view={AthletePerformance}
 					onClickItem={this.goToEvent}
+					filter={[[['state','athlete','state','guid'],this.state.guid]]}
 					noActions
-					fields={['event', 'totalTime', 'date']} />
+					fields={['event', 'totalTime', 'date']/*TODO hanlde this -- sometimes we want to show the event, sometimes we will want to show the athlete*/} />
 			</div>
 		);
 	}

@@ -28,6 +28,16 @@ class EventStore extends LuxLocalStore {
 		this.setActions(EventActions());
 	}
 
+	icon() {
+		return this.isStarted()
+			? (this.isRunning()
+				? "fa-hourglass-half"
+				: "fa-check-circle"
+			)
+			: "fa-clock-o"
+
+	}
+
 	onStartEvent(split) {
 		this.setState({startSplit: split});
 	}

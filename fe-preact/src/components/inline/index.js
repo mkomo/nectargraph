@@ -97,8 +97,10 @@ export default class InlineInput extends Component {
 		var iconClass = style.text_action + " fa fa-pencil";
 		iconClass += (this.state.showAlways) ? (" " + style.text_action_show) : "";
 		return (
-			<span class={style.editable} style={this.valueStyle()}>
-				{this.valueWithPlaceholder()}
+			<span class={style.editable}>
+				<span style={this.valueStyle()}>
+					{this.valueWithPlaceholder()}
+				</span>
 				<i onClick={this.setEditState} class={iconClass} aria-hidden="true"></i>
 			</span>
 		);
@@ -106,7 +108,7 @@ export default class InlineInput extends Component {
 //
 	renderInput() {
 		return (
-			<form onSubmit={this.handleSubmit}>
+			<form class={style.input_form} onSubmit={this.handleSubmit}>
 				<input class={style.input} type="text"
 					ref={(input) => { this.textInput = input; }}
 					value={this.state.tempValue}

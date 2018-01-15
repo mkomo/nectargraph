@@ -33,10 +33,38 @@ class LuxCache {
 
 	}
 
-	list(type, filter) {
+	list(type, filter=[]) {
 		//TODO impl filter
+
 		type = this.normalizeType(type);
-		return this.itemsByType[type];
+
+		if (!Array.isArray(filter)) {
+			console.warn('list filtering not implemented for filter of this type', filter);
+			return this.itemsByType[type];
+		}
+		var items = {};
+		Object.keys(this.itemsByType[type]).forEach(guid=>{
+			var pass = true;
+			var item = this.itemsByType[type][guid];
+			filter.forEach(f=> {
+				var sub = item;
+				f[0].forEach(e=>{
+					if (e in sub) {
+						sub = sub[e];
+					} else {
+						console.warn('oops, could not find elt', item, sub, e)
+					}
+				});
+				if (sub != f[1]) {
+					console.debug('did not pass filter',sub, f[1]);
+					pass = false;
+				}
+			})
+			if (pass) {
+				items[guid] = item;
+			}
+		})
+		return items;
 	}
 
 	store(type, value) {
@@ -244,6 +272,7 @@ class LuxAbstractStore {
 	}
 
 	unregister(component) {
+		//TODO ensure that this is working. when component count goes down to zero, this should be eligible for GC
 		this.components = this.components.filter(c => (c !== component));
 	}
 

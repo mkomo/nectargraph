@@ -42,11 +42,6 @@ export default class Header extends Component {
 								</Link>
 							</NavItem>
 							<NavItem>
-								<Link href="/athlete" className="nav-link">
-									<i class="fa fa-plus" aria-hidden="true"></i> athlete
-								</Link>
-							</NavItem>
-							<NavItem>
 								{/*<Link href="/events?live" className="nav-link">
 									<i>live</i>
 								</Link>*/}
@@ -57,6 +52,7 @@ export default class Header extends Component {
 							<NavItem>
 								<Link href="/athletes" className="nav-link">athletes</Link>
 							</NavItem>
+							{/*
 							<UncontrolledDropdown nav inNavbar>
 								<DropdownToggle nav>
 									<i class="fa fa-bars" aria-hidden="true"></i>
@@ -77,6 +73,11 @@ export default class Header extends Component {
 											<i class="fa fa-plus" aria-hidden="true"></i> event
 										</Link>
 									</DropdownItem>
+									<DropdownItem>
+										<Link href="/athlete">
+											<i class="fa fa-plus" aria-hidden="true"></i> athlete
+										</Link>
+									</DropdownItem>
 									<DropdownItem divider />
 									<DropdownItem>
 										<Link href="/">my account</Link>
@@ -86,7 +87,7 @@ export default class Header extends Component {
 									</DropdownItem>
 								</DropdownMenu>
 							</UncontrolledDropdown>
-
+							*/}
 						</Nav>
 					</Collapse>
 				</Navbar>

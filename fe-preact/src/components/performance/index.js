@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import { Link, route } from 'preact-router';
 import { Util, Split } from '../util';
 import InlineInput from '../inline';
 import StoreSearch from '../search';
@@ -7,6 +8,7 @@ import { Lux } from '../../stores/LuxStore';
 import { PerformanceStore } from '../../stores/PerformanceStore';
 import { AthleteStore } from '../../stores/AthleteStore';
 import Athlete from '../../components/athlete';
+import Clock from '../clock';
 import { Button, Fade } from 'reactstrap';
 
 var util = new Util();
@@ -33,6 +35,7 @@ export default class AthletePerformance extends LuxComponent {
 		this.handleAthleteClick = this.handleAthleteClick.bind(this);
 		this.deletePerformance = this.deletePerformance.bind(this);
 		this.replaceAthlete = this.replaceAthlete.bind(this);
+		this.goToAthlete = this.goToAthlete.bind(this);
 	}
 
 	addSplit(split) {
@@ -72,15 +75,27 @@ export default class AthletePerformance extends LuxComponent {
 		return (<table class={style.nested_table}><tr>{elts}</tr></table>);
 	}
 
-	get currentLapTime() {
+	get currentLapColumn() {
+		//TODO consider split spans
+		if (this.state.splits.length > 0) {
+			return (
+				<Clock startTimes={[
+							this.state.splits[this.state.splits.length - 1],
+							this.state.splits[0]
+						]}
+						isRunning={true}/>
+			);
+		}
+	}
+
+	get totalTime() {
 		//TODO consider split spans
 		if (this.state.splits.length > 0) {
 			var ts = this.state.splits[this.state.splits.length - 1].timestamp;
 			var ts0 = this.state.splits[0].timestamp;
 			return (
 				<div>
-					{util.formatDuration(new Date().getTime() - ts)}<br/>
-					{util.formatDuration(new Date().getTime() - ts0)}
+					{util.formatDuration(ts - ts0)}
 				</div>
 			);
 		}
@@ -114,27 +129,30 @@ export default class AthletePerformance extends LuxComponent {
 		}
 	}
 
+	goToAthlete() {
+		route('/athletes' + this.state.athlete.url(), true);
+	}
+
 	render() {
 		if (this.props.view == 'list') {
 			return this.renderList();
 		}
-		var classes = `${style.vcenter}`;
 		var isStarted = this.state.event.isStarted();
 		var isRunning = this.state.event.isRunning();
-		var icon_classes = "fa fa-trash " + style.text_action;
-		if (isRunning) {
-			classes += ` ${style.user_link}`
-		}
+
 		return (
 			<tr class={style.hoverable}>
-				<td class={style.vcenter}><InlineInput
-					value={this.state.bibNumber}
-					onChange={this.updateBib}
-					width="3em"
-					/></td>
-				<td class={classes} onClick={this.handleAthleteClick}>
+				{this.state.event.hideBib
+					? ''
+					: <td class={style.vcenter}><InlineInput
+						value={this.state.bibNumber}
+						onChange={this.updateBib}
+						width="3em"
+						/></td>
+				}
+				<td class={style.user_link_td}>
 					{this.state.athlete.state && !this.state.athlete.state.deleted
-						? (<span>
+						? (<span onClick={this.handleAthleteClick} class={isRunning ? style.user_link : style.user_link_inactive}>
 								{this.state.athlete.state.avatar
 									? <span><img width="18" height="18" src={this.state.athlete.state.avatar} />&nbsp;</span>
 									: <span></span>
@@ -143,19 +161,25 @@ export default class AthletePerformance extends LuxComponent {
 								value={this.state.athlete.state.name}
 								onChange={this.updateName}
 								placeholder={this.state.athlete.state.guid.substring(0,8)}
-								width="15em"
+								width="10em"
+								disabled={isRunning}
 								/>
 							</span>)
 						: (<span>[deleted athlete]</span>)
 					}
+				</td>
+				<td class={style.vcenter}>
 					<StoreSearch type={AthleteStore} view={Athlete} field="name" onSelectItem={this.replaceAthlete}/>
 					<span onClick={this.deletePerformance}>
-						<i class={icon_classes} aria-hidden="true"></i>
+						<i class={"fa fa-trash " + style.text_action} aria-hidden="true"></i>
+					</span>
+					<span onClick={this.goToAthlete}>
+						<i class={"fa fa-external-link-square " + style.text_action} aria-hidden="true"></i>
 					</span>
 				</td>
-				{isStarted ? <td class={style.vcenter}></td> : ''}
+				{false && isStarted ? <td class={style.vcenter}></td> : ''}
 				{isStarted ? <td class={style.vcenter}>{this.completedLaps}</td> : ''}
-				{isRunning ? <td>{this.currentLapTime}</td> : ''}
+				{isRunning ? <td class="small">{this.currentLapColumn}</td> : <td class={style.vcenter}>{this.totalTime}</td>}
 				{isStarted ? <td class="small">{this.splitElements}</td> : ''}
 			</tr>
 		);

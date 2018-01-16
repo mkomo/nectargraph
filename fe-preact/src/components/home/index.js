@@ -29,10 +29,11 @@ export default class Home extends Component {
 					Use lapper to plan meets and workouts, record splits for all
 					your athletes, and keep track of progress over the course of the season.</p>
 				<hr className="my-2" />
-				<p><b><a href="#">Log in</a></b> to share your events or <i>get started right away</i>:</p>
+				<p>{/*<b><a href="#">Log in</a></b> to share your events or */} 
+					Events and athletes are stored locally so you can <i>get started right away</i>!</p>
 				<p className="lead">
-				  <Link className="btn btn-primary" href="/event">new standalone event</Link>&nbsp;
-  				  <Link className="btn btn-primary" href="/meet">new meet</Link>
+				  <Link className="btn btn-primary" href="/event">new {/*standalone*/} event</Link>&nbsp;
+  				  {/*<Link className="btn btn-primary" href="/meet">new meet</Link>*/}
 				</p>
 			  </Jumbotron>
 			</section>

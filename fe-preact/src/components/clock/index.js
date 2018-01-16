@@ -40,25 +40,40 @@ export default class Clock extends Component {
 	}
 
 	render() {
-		let runningClockText = null;
+
+		var times = this.state.startTimes;
+		if (times == null) {
+			times = []
+		} else if (!Array.isArray(times)) {
+			times = [times];
+		}
+		times = times.filter(t=>(t != null));
+
+		var runningStyle = this.state.largeRunning ? style.running_clock : '';
+
+		let runningClocks = !this.state.isRunning
+			? []
+			: times.map(time=>{
+					let runningClockText = util.formatDuration((new Date().getTime() - time.timestamp), true);
+					return (<div class={runningStyle}>{runningClockText}</div>)
+				});
+
 		let startTimeText = null;
 		let endTimeText = null;
-		if (this.state.startTime) {
-			startTimeText = 'started: ' + new Date(this.state.startTime.timestamp).toLocaleString();
-		}
-		if (this.state.isRunning) {
-			runningClockText =
-					util.formatDuration((new Date().getTime() - this.state.startTime.timestamp), true);
+		if (times.length > 0) {
+			startTimeText = 'started: ' + new Date(times[0].timestamp).toLocaleString();
 		}
 		if (this.state.endTime) {
 			endTimeText = 'completed: ' + new Date(this.state.endTime.timestamp).toLocaleString();
 		}
 		return (
-			<div class='float-right text-right'>
-				<div>{this.state.currentTime}</div>
-				<div><small>{startTimeText}</small></div>
-				<div class={style.running_clock}>{runningClockText}</div>
-				<div><small>{endTimeText}</small></div>
+			<div class={this.state.right ? 'float-right text-right' : ''}>
+				{ this.state.showWallTime ? <div>{this.state.currentTime}</div> : ''}
+				{ this.state.showStartTime ? <div class="small">{startTimeText}</div> : ''}
+				{ this.state.showEndTime ? <div class="small">{endTimeText}</div> : ''}
+
+				{runningClocks}
+
 			</div>
 		);
 	}

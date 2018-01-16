@@ -34,6 +34,7 @@ export default class InlineInput extends Component {
 		if ('width' in props) newState['width'] = props['width'];
 		if ('placeholder' in props) newState['placeholder'] = props['placeholder'];
 		if ('showAlways' in props) newState['showAlways'] = props['showAlways'];
+		if ('disabled' in props) newState['disabled'] = props['disabled'];
 
 		this.setState(newState);
 	}
@@ -101,7 +102,10 @@ export default class InlineInput extends Component {
 				<span style={this.valueStyle()}>
 					{this.valueWithPlaceholder()}
 				</span>
-				<i onClick={this.setEditState} class={iconClass} aria-hidden="true"></i>
+				{ !this.state.disabled
+					? <i onClick={this.setEditState} class={iconClass} aria-hidden="true"></i>
+					: ''
+				}
 			</span>
 		);
 	}

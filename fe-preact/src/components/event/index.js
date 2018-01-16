@@ -26,6 +26,9 @@ export default class Event extends LuxComponent {
 		this.state = {};
 		this.setStore(props);
 
+		//TODO handle this in a much cleaner way
+		this.store.hideBib = true;
+
 		//button action setup
 		this.handleStartEndResumeClick = this.handleStartEndResumeClick.bind(this);
 		this.handleAddAthlete = this.handleAddAthlete.bind(this);
@@ -167,9 +170,10 @@ export default class Event extends LuxComponent {
 		}
 		return (
 			<div class={style.event}>
-				<Clock startTime={this.state.startSplit}
+				<Clock startTimes={[this.state.startSplit]}
 						endTime={this.state.endSplit}
-						isRunning={this.store.isRunning()}/>
+						isRunning={this.store.isRunning()}
+						showWallTime showStartTime showEndTime largeRunning right/>
 				<h1><InlineInput
 					value={this.state.name}
 					propName='name'
@@ -191,11 +195,12 @@ export default class Event extends LuxComponent {
 				<Table hover responsive>
 					<thead>
 						<tr>
-							<th>&nbsp;<br/>Bib{/* bib */}</th>
-							<th>Athlete&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* avatar and user name */}</th>
-							{this.store.isStarted() ? <th>Place{/* Position */}</th> : ''}
+							{this.store.hideBib ? '' : <th>&nbsp;<br/>Bib{/* bib */}</th> }
+							<th>Athlete{/* avatar and user name */}</th>
+							<th>{/* actions */}</th>
+							{false && this.store.isStarted() ? <th>Place{/* Position */}</th> : ''}
 							{this.store.isStarted() ? <th>Laps{/* what lap is this user on? */}</th> : ''}
-							{this.store.isRunning() ? <th>Current<br/>Lap/Split{/* what is the time of the current user's lap? */}</th> : ''}
+							{this.store.isRunning() ? <th>Current<br/>Lap/Split</th> : <th>Total Time</th>}
 							{this.store.isStarted() ? <th><span>{this.store.isRunning() ? 'Previous' : ' ' }<br/></span>Laps/Splits{/* one column contains all laps */}</th> : ''}
 						</tr>
 					</thead>

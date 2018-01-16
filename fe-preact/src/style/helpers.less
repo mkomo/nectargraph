@@ -1,8 +1,20 @@
+td.user_link_td {
+	padding: 0.75em
+}
 .user_link {
+	display: block;
 	cursor: pointer;
 	background-color: #2e5057;
 	color: #fff;
 	border-radius: 2em;
+	padding: 0.75em;
+	width: 100%;
+}
+.user_link_inactive {
+	display: block;
+	border-radius: 2em;
+	padding: 0.75em;
+	width: 100%;
 }
 
 .user_link:hover {
@@ -10,14 +22,15 @@
 }
 
 .text_action {
-	display: none;
+	visibility: hidden;
+	font-size: .7em;
+	color: #9fb8ad;
+	padding-left: .4em;
+	display: inline-block;
 }
 
 .text_action_show, tr:hover .text_action {
-	display: inline-block;
-	font-size: .7em;
-	color: #9fb8ad80;
-	padding-left: .4em;
+	visibility: visible;
 	cursor: pointer;
 }
 

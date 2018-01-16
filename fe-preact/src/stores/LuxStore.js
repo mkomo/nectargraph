@@ -365,7 +365,7 @@ class LuxLocalStore extends LuxMemStore {
 	_persist() {
 		var cache = __cache.itemsByType;
 
-		console.log('updating local storage for type ' + this.constructor.name);
+		console.log('updating local storage for type ' + this.constructor.name, cacheStats());
 
 		var denested = luxCacheFlatten(cache);
 		var localStorageName = luxLocalStorageName();
@@ -374,6 +374,13 @@ class LuxLocalStore extends LuxMemStore {
 	}
 }
 
+function cacheStats() {
+	var a=[];
+	Object.keys(__cache.itemsByType).forEach(k=>{
+		a.push(Object.keys(__cache.itemsByType[k]).length)
+	});
+	return a;
+}
 LuxLocalStore.init = function(Proto, arr){
 	console.log("LuxLocalStore: reading from LocalStorage:", Proto.name, arr.map(P=>P.name));
 	var localStorageName = luxLocalStorageName();
@@ -409,7 +416,7 @@ LuxLocalStore.init = function(Proto, arr){
 		}
 	}
 
-	console.log('populated cache', __cache);
+	console.log('populated cache', cacheStats(), __cache);
 }
 
 class LuxRestStore extends LuxMemStore {

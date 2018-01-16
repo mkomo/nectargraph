@@ -13,7 +13,6 @@ import {
 	DropdownMenu,
 	DropdownItem } from 'reactstrap';
 import style from './style.less';
-import 'bootstrap/dist/css/bootstrap.css';
 
 export default class Header extends Component {
 	constructor(props) {

@@ -1,6 +1,9 @@
 // import 'promise-polyfill';
 // import 'isomorphic-fetch';
 import { h, render } from 'preact';
+
+//load bootstrap first so that all other css overrides it.
+import 'bootstrap/dist/css/bootstrap.css';
 import './style';
 
 let root;

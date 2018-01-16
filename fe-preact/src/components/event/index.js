@@ -11,8 +11,6 @@ import { EventStore } from '../../stores/EventStore'
 import { AthleteStore } from '../../stores/AthleteStore'
 import { PerformanceStore } from '../../stores/PerformanceStore'
 
-import 'bootstrap/dist/css/bootstrap.css';
-
 import { Util, Split } from '../util';
 var util = new Util();
 

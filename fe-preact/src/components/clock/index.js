@@ -25,7 +25,7 @@ export default class Clock extends Component {
 		//but maybe it's something else.
 		//https://www.thecodeship.com/web-development/alternative-to-javascript-evil-setinterval/
 		//45ms seems to be the largest interval that looks like a stopwatch. any slower and it looks laggy
-		this.timer = setInterval(this.updateTime, 45);
+		this.timer = setInterval(this.updateTime, 145);
 		this.updateTime();
 	}
 

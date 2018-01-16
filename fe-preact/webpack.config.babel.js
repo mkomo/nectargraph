@@ -56,7 +56,7 @@ module.exports = {
 					use: [
 						{
 							loader: 'css-loader',
-							options: { modules: true, sourceMap: CSS_MAPS, importLoaders: 1, minimize: true }
+							options: { modules: true, sourceMap: CSS_MAPS, importLoaders: 1, minimize: false }
 						},
 						{
 							loader: `postcss-loader`,
@@ -133,6 +133,7 @@ module.exports = {
 			{ from: './favicon.ico', to: './' }
 		])
 	]).concat(ENV==='production' ? [
+		/*
 		new webpack.optimize.UglifyJsPlugin({
 			output: {
 				comments: false
@@ -162,7 +163,7 @@ module.exports = {
 				drop_console: true
 			}
 		}),
-
+		*/
 		new OfflinePlugin({
 			relativePaths: false,
 			AppCache: false,

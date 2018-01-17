@@ -14,3 +14,5 @@ convert $RAW_LARGE -resize 180x180 $ICON_DIR/apple-touch-icon.png
 convert $RAW_LARGE -resize 192x192 $ICON_DIR/android-chrome-192x192.png
 convert $RAW_LARGE -resize 512x512 $ICON_DIR/android-chrome-512x512.png
 convert $RAW_LARGE -resize 150x150 $ICON_DIR/mstile-150x150.png
+
+exiftool -all= -r -overwrite_original -ext png $ICON_DIR/

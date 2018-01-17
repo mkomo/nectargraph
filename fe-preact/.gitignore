@@ -1,6 +1,7 @@
 /node_modules
 /npm-debug.log
 /build
+/build-archives
 .DS_Store
 /coverage
 /.idea

@@ -130,7 +130,7 @@ module.exports = {
 		}),
 		new CopyWebpackPlugin([
 			{ from: './manifest.json', to: './' },
-			{ from: './favicon.ico', to: './' }
+			{ from: './assets/icons/favicon.ico', to: './' }
 		])
 	]).concat(ENV==='production' ? [
 		/*

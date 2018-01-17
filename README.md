@@ -18,12 +18,20 @@ Built with [preact](https://preactjs.com/) and [Spring Data REST](https://projec
 - [x] hide bib number
 - [x] hide place column
 - [x] links moved outside of active athlete click
+- [x] build and deployment working
 
 ### Minimum Alpha Launch
 
-- [ ] don't save untouched Store (or add confirm to deleting touched store)
-- [ ] split spans working, table span the header and put each split in it's own column
+- [x] remove +event from header, add create new to list page
+- [ ] make event and athlete placeholder names more readable with prefix
+- [ ] make tool icons slightly larger, wrap event names, don't wrap edit icon
+- [ ] reverse order in lists, include dates
+- [ ] don't save untouched Store (and/or add confirm to deleting touched store)
+- [ ] split modal, split spans working, table span the header and put each split in it's own column, split order reversed? don't include 0 split
+- [ ] swipe scroll through long results on athlete page
 - [ ] add filters to lists (including search)
+- [ ] meet planner (2d grid -- events and athletes)
+- [ ] add whole team to event
 - [ ] organize code directories
 - [ ] place column actually displaying place
 - [ ] event performances sort on column header click

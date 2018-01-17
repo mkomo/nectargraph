@@ -367,6 +367,11 @@ class LuxLocalStore extends LuxMemStore {
 
 		console.log('updating local storage for type ' + this.constructor.name, cacheStats());
 
+		if (!this.constructor.init.__luxIsInitialized) {
+			console.log("!!!!!!!! trying to update before cache is initialized");
+			//TODO create an action queue
+			return;
+		}
 		var denested = luxCacheFlatten(cache);
 		var localStorageName = luxLocalStorageName();
 		localStorage.setItem(localStorageName, JSON.stringify(denested, null, 2));

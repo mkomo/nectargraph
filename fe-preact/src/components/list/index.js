@@ -1,4 +1,5 @@
 import { h, Component } from 'preact';
+import { route } from 'preact-router';
 import { Lux } from '../../stores/LuxStore';
 import { Button } from 'reactstrap';
 import style from './style.less';
@@ -26,6 +27,7 @@ export default class List extends Component {
 			noActions: props.noActions,
 			deleteAction: props.deleteAction,
 			onClickItem: props.onClickItem,
+			newPath: props.newPath,
 			//update items at the same time or else you'll cause an error with items that don't match their type
 			items: this.fetchItems(props)
 		});
@@ -76,7 +78,24 @@ export default class List extends Component {
 		}
 		return (
 			<div class={style.list}>
-				{ this.state.noActions ? '' : (<h1>{name} List</h1>)}
+				{ this.state.noActions ? '' : (
+					<div>
+						{ this.state.newPath
+							? (<div class="pull-right">
+								<Button color="primary"
+										onClick={e=>{
+											console.log('new');
+											route(this.state.newPath, true);
+										}}>
+									<i class="fa fa-plus" aria-hidden="true"></i>
+									{' ' + name}
+								</Button>
+							</div>)
+							: ''
+						}
+						<h1>{name} List</h1>
+					</div>
+				)}
 				{/*TODO add canned filters, add search above list*/}
 				{views}
 			</div>

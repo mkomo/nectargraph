@@ -148,7 +148,7 @@ export default class Athlete extends LuxComponent {
 											onChange={this.actions.updateAthlete}
 											placeholder={this.state.guid.substring(0,8)}
 											propName="name"
-											width="15em"
+											width="100%"
 											showAlways
 											/>
 									</h1>

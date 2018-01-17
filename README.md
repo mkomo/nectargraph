@@ -23,6 +23,7 @@ Built with [preact](https://preactjs.com/) and [Spring Data REST](https://projec
 ### Minimum Alpha Launch
 
 - [x] remove +event from header, add create new to list page
+- [ ] placeholder for empty lists
 - [ ] make event and athlete placeholder names more readable with prefix
 - [ ] make tool icons slightly larger, wrap event names, don't wrap edit icon
 - [ ] reverse order in lists, include dates

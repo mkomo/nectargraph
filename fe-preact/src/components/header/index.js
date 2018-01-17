@@ -31,15 +31,10 @@ export default class Header extends Component {
 	render() {
 		return (
 				<Navbar dark expand="xs">
-					<NavbarBrand href="/">Lapper</NavbarBrand>
+					<NavbarBrand className={style.lapper_title} href="/">Lapper</NavbarBrand>
 					<NavbarToggler onClick={this.toggle}/>
 					<Collapse isOpen={this.state.isOpen} navbar>
 						<Nav className="ml-auto" navbar>
-							<NavItem>
-								<Link href="/event" className="nav-link">
-									<i class="fa fa-plus" aria-hidden="true"></i> event
-								</Link>
-							</NavItem>
 							<NavItem>
 								{/*<Link href="/events?live" className="nav-link">
 									<i>live</i>

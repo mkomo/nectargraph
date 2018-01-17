@@ -156,11 +156,29 @@ export default class Athlete extends LuxComponent {
 							</Row>
 							<Row>
 								<Col sm="3" xs="12" className="small">full name</Col>
-								<Col xs="auto">{this.state.name}</Col>
+								<Col xs="auto">
+									<InlineInput
+										value={this.state.fullName}
+										onChange={this.actions.updateAthlete}
+										placeholder="(none)"
+										propName="fullName"
+										width="100%"
+										showAlways
+										/>
+								</Col>
 							</Row>
 							<Row>
 								<Col sm="3" xs="12" className="small">organization</Col>
-								<Col xs="auto">{this.state.organization ? this.state.organization : (<span class="text-muted">(none)</span>)}</Col>
+								<Col xs="auto">
+									<InlineInput
+										value={this.state.organization}
+										onChange={this.actions.updateAthlete}
+										placeholder="(none)"
+										propName="organization"
+										width="100%"
+										showAlways
+										/>
+								</Col>
 							</Row>
 							<Row>
 								<Col sm="3" xs="12" className="small">affiliations</Col>

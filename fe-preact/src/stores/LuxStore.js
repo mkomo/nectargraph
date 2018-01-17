@@ -368,7 +368,8 @@ class LuxLocalStore extends LuxMemStore {
 		console.log('updating local storage for type ' + this.constructor.name, cacheStats());
 
 		if (!this.constructor.init.__luxIsInitialized) {
-			console.log("!!!!!!!! trying to update before cache is initialized");
+			console.log("!!!!!!!! trying to update before cache is initialized", this.constructor.name);
+			console.trace();
 			//TODO create an action queue
 			return;
 		}

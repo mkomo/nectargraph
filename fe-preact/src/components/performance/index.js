@@ -189,7 +189,6 @@ export default class AthletePerformance extends LuxComponent {
 		//TODO add place for completed events, scheduled time, event distance/deets
 		var es = this.state.event.state;
 		var icon_classes = "fa " + this.state.event.icon();
-		console.log(icon_classes);
 		return (
 			<div>
 				<span><i class={icon_classes} aria-hidden="true"></i> {es.name}</span>

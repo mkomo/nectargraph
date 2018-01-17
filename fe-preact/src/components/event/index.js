@@ -168,28 +168,29 @@ export default class Event extends LuxComponent {
 		}
 		return (
 			<div class={style.event}>
+				<div class="pull-left">
+					<h1><InlineInput
+						value={this.state.name}
+						propName='name'
+						onChange={this.updateState}
+						placeholder={this.state.guid.substring(0,8)}
+						width="10em"
+						showAlways
+						/></h1>
+					<div>
+						<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
+						<Button color={buttonColor} onClick={this.handleStartEndResumeClick}>{buttonText}</Button>&nbsp;
+						{
+							this.store.isStarted()
+							? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
+							: ''
+						}
+					</div>
+				</div>
 				<Clock startTimes={[this.state.startSplit]}
 						endTime={this.state.endSplit}
 						isRunning={this.store.isRunning()}
 						showWallTime showStartTime showEndTime largeRunning right/>
-				<h1><InlineInput
-					value={this.state.name}
-					propName='name'
-					onChange={this.updateState}
-					placeholder={this.state.guid.substring(0,8)}
-					width="10em"
-					showAlways
-					/></h1>
-				{this.store.isStarted() ? <div></div> : ''}
-				<div>
-					<Button color="primary" onClick={this.handleAddAthlete}>+ Add Athlete</Button>&nbsp;
-					<Button color={buttonColor} onClick={this.handleStartEndResumeClick}>{buttonText}</Button>&nbsp;
-					{
-						this.store.isStarted()
-						? <Button color="warning" onClick={this.handleResetClick}>Reset</Button>
-						: ''
-					}
-				</div>
 				<Table hover responsive>
 					<thead>
 						<tr>

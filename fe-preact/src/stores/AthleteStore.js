@@ -18,7 +18,8 @@ class AthleteStore extends LuxLocalStore {
 
 		this.state = {
 			guid: (props.guid ? props.guid : Lux.guid()),
-			name: (props.name ? props.name : null),
+			name: (props.name ? props.name : null),//display name
+			fullName: (props.fullName ? props.fullName : null),
 			avatar: (props.avatar ? props.avatar : null),
 
 			organization: (props.organization ? props.organization : null),
@@ -37,7 +38,7 @@ class AthleteStore extends LuxLocalStore {
 		};
 
 		if (!this.state.avatar) {
-			this.onUpdateAvatar(this.state.guid);
+			this.state.avatar = this.createAvatar(this.state.guid);
 		}
 		this.setActions(AthleteActions());
 	}
@@ -53,6 +54,10 @@ class AthleteStore extends LuxLocalStore {
 	}
 
 	onUpdateAvatar(hashSeed = Lux.guid()) {
+		this.setState({avatar: this.createAvatar(hashSeed)});
+	}
+
+	createAvatar(hashSeed) {
 		var hash = (function(seed){
 			//Assume seed is a guid string.
 			//TODO handle arbitrary string (or object?)
@@ -67,7 +72,7 @@ class AthleteStore extends LuxLocalStore {
 		// create a base64 encoded SVG
 		var data = new Identicon(hash, options).toString();
 		var imgSrc = "data:image/svg+xml;base64," + data;
-		this.setState({avatar: imgSrc});
+		return imgSrc;
 	}
 }
 

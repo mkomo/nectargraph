@@ -16,6 +16,8 @@ class EventStore extends LuxLocalStore {
 	constructor(props = {}) {
 		console.debug('EventStore constructor', props);
 		super(props);
+		//TODO move this into a static getInitState(props) method.
+		//if some fuck puts a setState call in the constructor, it will set off a persistence loop
 		this.state = {
 			//TODO handle not found
 			guid: (props.guid ? props.guid : Lux.guid()),
@@ -79,7 +81,8 @@ EventStore.init = function(Proto){
 	console.log("inside EventStore init function");
 }
 
+
+
 export {
-	EventActions,
 	EventStore
 }

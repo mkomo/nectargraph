@@ -1,21 +1,34 @@
 @import '~style/helpers';
 @import '~components/list/style';
 
-.event .clock {
-	font-size: 2em;
-	line-height: normal;
+.graph_container {
+	margin: 0 -15px
 }
 
-a.block{
-	display: block;
+svg:focus{
+	outline: none;
 }
-
-table {
-	margin-top: 10px;
-	white-space: nowrap;
-	font-family: monospace;
+form.graph_form {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
 }
-
-tr:hover {
-	background-color: #9fb8ad40;
+text.nodelabel {
+	cursor: move;
+}
+rect {
+	fill: none;
+	pointer-events: all;
+}
+circle, .line {
+	fill: none;
+	stroke: #444444;
+	stroke-width: 2.5px;
+	cursor: move;
+}
+circle {
+	fill: rgba(255,255,255,1.0);
+}
+.selected {
+	fill: #ff7f0e;
 }

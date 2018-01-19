@@ -1,5 +1,4 @@
 import { LuxLocalStore, Lux } from './LuxStore';
-import Identicon from 'identicon.js';
 
 let AthleteActions = Lux.createActions([
 	'deleteAthlete',
@@ -58,21 +57,7 @@ class AthleteStore extends LuxLocalStore {
 	}
 
 	createAvatar(hashSeed) {
-		var hash = (function(seed){
-			//Assume seed is a guid string.
-			//TODO handle arbitrary string (or object?)
-			return hashSeed.replace(/-/g,'');
-		})(hashSeed);
-		var options = {
-			background: [0,0,0,0],                    // rgba transparent
-			margin: 0.05,                             // 5% margin
-			size: 420,                                // 420px square
-			format: 'svg'                             // use SVG instead of PNG
-		};
-		// create a base64 encoded SVG
-		var data = new Identicon(hash, options).toString();
-		var imgSrc = "data:image/svg+xml;base64," + data;
-		return imgSrc;
+		return null;
 	}
 }
 

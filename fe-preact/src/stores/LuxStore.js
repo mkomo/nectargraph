@@ -304,7 +304,7 @@ class LuxMemStore extends LuxAbstractStore {
 }
 
 function luxLocalStorageName() {
-	return '__lux_store';
+	return '__lux_store_storynotes';
 }
 
 function luxCacheFlatten(o, depth = 0, maxDepth = 2, filter = null) {

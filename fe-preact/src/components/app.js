@@ -8,15 +8,17 @@ import { Lux } from '../stores/LuxStore';
 import { EventStore } from '../stores/EventStore';
 import { AthleteStore } from '../stores/AthleteStore';
 import { PerformanceStore } from '../stores/PerformanceStore';
+import { GraphStore } from '../stores/GraphStore';
 import Athlete from './athlete';
 import Meet from './meet';
+import Graph from './graph/Graph';
 import List from './list';
 
 export default class App extends Component {
 
 	constructor(props) {
 		super(props);
-		Lux.init([EventStore, AthleteStore, PerformanceStore]);
+		Lux.init([EventStore, AthleteStore, PerformanceStore, GraphStore]);
 	}
 	/** Gets fired when the route changes.
 	 *	@param {Object} event		"change" event from [preact-router](http://git.io/preact-router)
@@ -37,11 +39,13 @@ export default class App extends Component {
 						<Athlete path="/athlete" />
 						<Event path="/event" />
 						<Meet path="/meet" />
+						<Graph path="/graph" />
 
 						<Athlete path="/athletes/:organization/:name" />
 						<Athlete path="/athletes/:guid" />
 						<Event path="/events/:guid" />
 						<Meet path="/meets/:guid" />
+						<Graph path="/graphs/:guid" />
 
 						<List path="/athletes" type={AthleteStore} view={Athlete} newPath="/athlete" deleteAction="deleteAthlete"/>
 						<List path="/events" type={EventStore} view={Event} newPath="/event" deleteAction="deleteEvent"/>

@@ -31,57 +31,13 @@ export default class Header extends Component {
 	render() {
 		return (
 				<Navbar dark expand="xs">
-					<NavbarBrand className={style.lapper_title} href="/">Lapper</NavbarBrand>
+					<NavbarBrand className={style.storynotes_title} href="/">storynotes</NavbarBrand>
 					<NavbarToggler onClick={this.toggle}/>
 					<Collapse isOpen={this.state.isOpen} navbar>
 						<Nav className="ml-auto" navbar>
 							<NavItem>
-								{/*<Link href="/events?live" className="nav-link">
-									<i>live</i>
-								</Link>*/}
-								<Link href="/events" className="nav-link">
-									events
-								</Link>
+								<Link href="/graphs" className="nav-link">graphs</Link>
 							</NavItem>
-							<NavItem>
-								<Link href="/athletes" className="nav-link">athletes</Link>
-							</NavItem>
-							{/*
-							<UncontrolledDropdown nav inNavbar>
-								<DropdownToggle nav>
-									<i class="fa fa-bars" aria-hidden="true"></i>
-								</DropdownToggle>
-								<DropdownMenu right>
-									<DropdownItem>
-										<Link href="/athletes">athletes</Link>
-									</DropdownItem>
-									<DropdownItem>
-										<Link href="/meets">meets</Link>
-									</DropdownItem>
-									<DropdownItem>
-										<Link href="/events?single">one-off events</Link>
-									</DropdownItem>
-									<DropdownItem divider />
-									<DropdownItem>
-										<Link href="/event">
-											<i class="fa fa-plus" aria-hidden="true"></i> event
-										</Link>
-									</DropdownItem>
-									<DropdownItem>
-										<Link href="/athlete">
-											<i class="fa fa-plus" aria-hidden="true"></i> athlete
-										</Link>
-									</DropdownItem>
-									<DropdownItem divider />
-									<DropdownItem>
-										<Link href="/">my account</Link>
-									</DropdownItem>
-									<DropdownItem>
-										<Link href="/">log out</Link>
-									</DropdownItem>
-								</DropdownMenu>
-							</UncontrolledDropdown>
-							*/}
 						</Nav>
 					</Collapse>
 				</Navbar>

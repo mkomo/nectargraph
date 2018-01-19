@@ -49,6 +49,7 @@ export default class App extends Component {
 
 						<List path="/athletes" type={AthleteStore} view={Athlete} newPath="/athlete" deleteAction="deleteAthlete"/>
 						<List path="/events" type={EventStore} view={Event} newPath="/event" deleteAction="deleteEvent"/>
+						<List path="/graphs" type={GraphStore} view={Graph} newPath="/graph" deleteAction/>
 						<List path="/meets" type={Meet}/>
 					</Router>
 				</div>

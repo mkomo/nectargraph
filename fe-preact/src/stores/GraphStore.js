@@ -17,6 +17,7 @@ class GraphViewStore extends LuxLocalStore {
 var keys = [
 	a => a.guid ? "/" + a.guid : undefined
 ]
+
 class GraphStore extends LuxLocalStore {
 	constructor(props = {}) {
 		super(props);
@@ -32,6 +33,12 @@ class GraphStore extends LuxLocalStore {
 			groupConnections: []
 		}
 
+	}
+
+	delete() {
+		console.log('onDeleteGraph');
+		super.delete();
+		this.setState({deleted: true});
 	}
 }
 GraphStore.keys = keys;

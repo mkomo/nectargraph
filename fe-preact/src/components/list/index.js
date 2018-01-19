@@ -65,7 +65,7 @@ export default class List extends Component {
 						? (<div class="pull-right">
 								<Button className={style.list_entry_action} color="link"
 										onClick={e=>{
-											items[key].actions[this.state.deleteAction]();
+											items[key].delete();
 											this.setState({items : this.fetchItems(this.state)})
 										}}>
 									<i class="fa fa-trash" aria-hidden="true"></i>

@@ -3,6 +3,7 @@ import { Link, route } from 'preact-router';
 
 import * as d3 from "d3";
 import 'd3-selection-multi';
+import { parseSvg } from "d3-interpolate/src/transform/parse";
 
 import style from './style.less';
 import { Button, Table, Fade } from 'reactstrap';
@@ -200,13 +201,12 @@ export default class Graph extends LuxComponent {
 				.on("zoom", zoomed);
 
 			if (model.transform != null) {
-				//TODO set transform on call instead of container
 				//https://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4/38230545
-				// container.attr("transform", model.transform);
-				svg.call(zoom);
-			} else {
-				svg.call(zoom);
+				var transform = parseSvg(model.transform);
+				container.attr("transform", model.transform);
+				svg.call(zoom.transform, d3.zoomIdentity.translate(transform.translateX, transform.translateY).scale(transform.scaleX));
 			}
+			svg.call(zoom);
 
 			function zoomed() {
 				container.attr("transform", d3.event.transform);
@@ -218,11 +218,11 @@ export default class Graph extends LuxComponent {
 			function redraw(sort=false) {
 				console.log("redraw");
 				// Persist changes
-				// localStorage.setItem('model', JSON.stringify({
-				// 		nodes: model.nodes,
-				// 		edges: model.edges,
-				// 		transform: container.attr("transform")
-				// }, null, '\t'));
+				localStorage.setItem('model', JSON.stringify({
+						nodes: model.nodes,
+						edges: model.edges,
+						transform: container.attr("transform")
+				}, null, '\t'));
 
 				var t = d3.transition()
 					.duration(1750)

@@ -6,7 +6,7 @@ import 'd3-selection-multi';
 import { parseSvg } from "d3-interpolate/src/transform/parse";
 
 import style from './style.less';
-import { Button, Table, Fade } from 'reactstrap';
+import { Form, FormGroup, Label, Input, Button, FormText } from 'reactstrap';
 import InlineInput from '../inline';
 
 import { Lux } from '../../stores/LuxStore'
@@ -24,7 +24,7 @@ var util = new Util();
 
 var LuxComponent = Lux.Component.extend(Component);
 
-
+//TODO remove this? or keep this as a shim between the view and the store?
 class Node {
 	constructor(x, y, name, categories = []) {
 		this.x = x;
@@ -61,13 +61,17 @@ export default class Graph extends LuxComponent {
 	constructor(props) {
 		super(props);
 
-		this.state = {};
+		this.state = {
+			selected: null,
+			dragged: null
+		};
 		this.setStore(props);
 
 		this.update = this.update.bind(this);
 		this.createGraph = this.createGraph.bind(this);
 		this.getDimensions = this.getDimensions.bind(this);
 		this.redraw = this.redraw.bind(this);
+		this.updateSelected = this.updateSelected.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -136,8 +140,10 @@ export default class Graph extends LuxComponent {
 		var model = {};
 		window.model = model;
 
+		var that = this;
+
 		function random_graph(model) {
-			var d = this.getDimensions();
+			var d = that.getDimensions();
 			model.nodes = d3.range(1, 10).map(function(i) {
 				return new Node(i * d.width / 10,
 					50 + Math.random() * (d.height - 100));
@@ -160,9 +166,6 @@ export default class Graph extends LuxComponent {
 			model.transform = m.transform;
 		}
 
-		this.dragged = null;
-		this.selected = null;
-
 		this.svg = d3.select("#graph").append("svg")
 			.attr("id", 'graph_svg')
 			.attr('style', 'background-color: #fbf1cd');
@@ -176,7 +179,6 @@ export default class Graph extends LuxComponent {
 		this.container = this.svg.append('g');//select("#layer1");
 		console.log('this.container', this.container);
 
-		var that = this;
 		d3.select("#button_random").on("click", function(){
 			d3.event.preventDefault();
 			d3.event.stopPropagation();
@@ -186,17 +188,6 @@ export default class Graph extends LuxComponent {
 					edges: model.edges
 				}));
 				random_graph(model);
-				that.redraw(false);
-			}
-		});
-
-		d3.select("#button_update").on("click", function(){
-			d3.event.preventDefault();
-			d3.event.stopPropagation();
-			if (that.selected != null && that.selected.constructor.name === Node.name){
-				that.selected.name = document.getElementById("input_name").value;
-				that.selected.size = parseFloat(document.getElementById("input_size").value);
-				console.log(that.selected);
 				that.redraw(false);
 			}
 		});
@@ -221,40 +212,47 @@ export default class Graph extends LuxComponent {
 		this.svg.node().focus();
 
 		function click_create_node() {
-			console.log("click", d3.event, that.dragged);
+			console.log("click", d3.event, that.state.dragged);
 			var coord = d3.mouse(that.container.node());
 			var node = new Node(coord[0], coord[1], "(no name)");
-			that.dragged = null;
-			model.nodes.push(that.selected = node);
+
+			that.setState({
+				selected: node,
+				dragged: null
+			});
+			model.nodes.push(node);
 			that.redraw();
 		}
 
 		function mousemove() {
-			if (!that.dragged) return;
+			if (!that.state.dragged) return;
+			console.log(d3.event, d3.mouse(that.container.node()));
 
 			d3.event.preventDefault();
 			d3.event.stopPropagation();
 			var m = d3.mouse(that.container.node());
-			that.dragged.x = m[0];
-			that.dragged.y = m[1];
+			that.state.dragged.x = m[0];
+			that.state.dragged.y = m[1];
 			that.redraw();
 		}
 
 		function mouseup() {
-			if (!that.dragged) return;
+			if (!that.state.dragged) return;
 			mousemove();
-			that.dragged = null;
+			that.setState({
+				dragged: null
+			});
 		}
 
 		function keydown() {
 			console.log('keydown');
-			if (!that.selected) return;
+			if (!that.state.selected) return;
 			switch (d3.event.keyCode) {
 				case 8: // backspace
 				case 46:
 					{ // delete
-						that.selected.deleted = true;
-						that.selected = null;
+						that.state.selected.deleted = true;
+						that.setState({selected: null});
 						that.redraw();
 						break;
 					}
@@ -269,21 +267,21 @@ export default class Graph extends LuxComponent {
 	}
 
 	redraw(sort=false) {
+		// Persist changes
+		// localStorage.setItem('model', JSON.stringify({
+		// 		nodes: model.nodes,
+		// 		edges: model.edges,
+		// 		transform: this.container.attr("transform")
+		// }, null, '\t'));
 
 		let that = this;
 
 		var line = d3.line()
 				.x(d=>d.x)
 				.y(d=>d.y);
-		// Persist changes
-		// localStorage.setItem('model', JSON.stringify({
-		// 		nodes: model.nodes,
-		// 		edges: model.edges,
-		// 		transform: that.container.attr("transform")
-		// }, null, '\t'));
 
 		var d = this.getDimensions();
-		console.log("redraw", d.width, d.height);
+		// console.log("redraw", d.width, d.height);
 		this.svg
 			.attr("width", d.width)
 			.attr("height", d.height)
@@ -304,8 +302,13 @@ export default class Graph extends LuxComponent {
 
 		edge.enter().append("path")
 			.attr("class", style.line)
-			.on("mousedown", function(d) {
-				that.selected = that.dragged = d;
+			.on("click", function(d) {
+				d3.event.preventDefault();
+				d3.event.stopPropagation();
+				that.setState({
+					selected: d,
+					dragged: null
+				});
 				that.redraw(true);
 			})
 			.style("opacity", 0)
@@ -315,7 +318,7 @@ export default class Graph extends LuxComponent {
 			.attr("d", function(a) {
 				return line([a.source(), a.target()]);
 			}).classed(style.selected, function(d) {
-				return d === that.selected;
+				return d === that.state.selected;
 			});
 
 		//Nodes
@@ -323,14 +326,17 @@ export default class Graph extends LuxComponent {
 			.data(model.nodes.filter(node => !node.deleted));
 		var radius = 8.5
 
-		var mousedown = function(d) {
+		var onSelectNode = function(d) {
 			d3.event.preventDefault();
 			d3.event.stopPropagation();
-			if (d3.event.shiftKey && that.selected != null && that.selected !== d) {
-				model.edges.push(new Edge(that.selected.id, d.id));
+			if (d3.event.shiftKey && that.state.selected != null && that.state.selected !== d) {
+				model.edges.push(new Edge(that.state.selected.id, d.id));
 			} else {
-				console.log("mousedown", d);
-				that.selected = that.dragged = d;
+				// console.log("mousedown", d, d3.event);
+				that.setState({
+					selected: d,
+					dragged: d3.event.type == "mousedown" ? d : null
+				});
 			}
 			that.redraw(true);
 		}
@@ -338,12 +344,14 @@ export default class Graph extends LuxComponent {
 		circle.exit().remove();
 		circle.enter().append("circle")
 			.style("opacity", 0)
-			.on("mousedown", mousedown)
+			.on("mousedown", onSelectNode)
+			.on("click", onSelectNode)
+			.on("dblclick", onSelectNode)
 			.transition(t)
 				.style("opacity", 1)
 		.selection().merge(circle)
 			.classed(style.selected, function(d) {
-				return d === that.selected;
+				return d === that.state.selected;
 			})
 			.attr("cx", function(d) {
 				return d.x;
@@ -362,7 +370,9 @@ export default class Graph extends LuxComponent {
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
 				.style("opacity", 0)
-				.on("mousedown", mousedown)
+				.on("mousedown", onSelectNode)
+				.on("click", onSelectNode)
+				.on("dblclick", onSelectNode)
 				.transition(t)
 					.style("opacity", 1)
 			.selection().merge(nodelabels)
@@ -416,6 +426,17 @@ export default class Graph extends LuxComponent {
 		}
 	}
 
+	updateSelected(e){
+		console.log('updateSelected', arguments, this.svg);
+		e.preventDefault();
+		e.stopPropagation();
+		if (this.state.selected) {
+			this.state.selected.name = document.getElementById("nodeCaption").value;
+			this.state.selected.size = parseFloat(document.getElementById("nodeSize").value);
+			this.svg.node().focus();
+			this.redraw();
+		}
+	}
 	render() {
 		console.debug('Graph.render',this.state);
 		return (!('view' in this.props) || this.props['view'] == 'std')
@@ -454,22 +475,55 @@ export default class Graph extends LuxComponent {
 	}
 
 	renderLoaded() {
+		var node = this.state.selected;
+		// console.log('loaded', this.state);
+		/*
+
+		Controls
+			select/multiselect(shift)/add, zoom to extent
+		Graph data
+			name
+			# nodes
+			# categories
+			# connections
+			background image/color
+		*/
 		return (
 			<div class={style.graph_container} id="graph">
-				<form class={style.graph_form}>
-					<InlineInput
-						value={this.state.name}
-						onChange={this.update}
-						propName="name"
-						placeholder={this.state.guid.substring(0,8)}
-						width="10em"
-						showAlways
-						/>
-					<input id="input_name" />
-					<input id="input_size" />
-					<button id="button_update">update</button>
-					<button id="button_random">random</button>
-				</form>
+				<div class={style.graph_form}>
+					<h2>
+						<InlineInput
+							value={this.state.name}
+							onChange={this.update}
+							propName="name"
+							placeholder="(untitled)"
+							width="100%"
+							showAlways
+							/>
+					</h2>
+
+					{ node
+						? (
+							<Form onSubmit={this.updateSelected}>
+								<FormGroup>
+									<Label for="nodeCaption">node caption</Label>
+									<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
+								</FormGroup>
+								<FormGroup>
+									<Label for="nodeCaptionAngle">node caption angle</Label>
+									<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
+								</FormGroup>
+								<FormGroup>
+									<Label for="nodeSize">node size</Label>
+									<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
+								</FormGroup>
+								<Button id="button_update">update</Button>
+							</Form>
+						)
+						: ''
+					}
+
+				</div>
 			</div>
 		);
 

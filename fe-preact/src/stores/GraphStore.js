@@ -7,6 +7,7 @@ class GraphViewStore extends LuxLocalStore {
 		this.state = {
 			graph: null,
 			selectedNodes: [],
+			selectedEdges: [],
 			mode: null,
 
 		}

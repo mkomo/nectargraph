@@ -2,7 +2,15 @@
 @import '~components/list/style';
 
 .graph_container {
-	margin: 0 -15px
+	margin: 0 -15px;
+	position: relative;
+}
+
+input#nodeCaption {
+	text-align: center;
+	font-size: 0.75em;
+	line-height: 1.2;
+	height: 5em;
 }
 
 svg:focus{
@@ -10,8 +18,16 @@ svg:focus{
 }
 .graph_form {
 	position: absolute;
-	bottom: 10px;
-	left: 10px;
+	top: 1em;
+	right: 1em;
+	width: 17em;
+	padding: 0.5em 1em;
+	background: #FFF;
+	border-radius: 0.25em;
+	box-shadow: 0 0 0.2em 0.1em rgba(80,80,80,.25);
+}
+.graph_form h2 {
+	margin: 0;
 }
 text.nodelabel {
 	cursor: move;
@@ -31,4 +47,7 @@ circle {
 }
 .selected {
 	fill: #ff7f0e;
+}
+.line.selected {
+	stroke: #ff7f0e;
 }

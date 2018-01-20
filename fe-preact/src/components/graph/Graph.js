@@ -226,7 +226,6 @@ export default class Graph extends LuxComponent {
 
 		function mousemove() {
 			if (!that.state.dragged) return;
-			console.log(d3.event, d3.mouse(that.container.node()));
 
 			d3.event.preventDefault();
 			d3.event.stopPropagation();
@@ -448,13 +447,6 @@ export default class Graph extends LuxComponent {
 		console.debug('inline',this.state);
 		var href = "/graphs" + this.store.url();
 
-		/**
-		icon (event status)
-		event name
-		date created
-		parent meet?
-		athlete count?
-		 */
 		return (
 <div>
 	<span class={style.list_entry_elt}>
@@ -476,11 +468,13 @@ export default class Graph extends LuxComponent {
 
 	renderLoaded() {
 		var node = this.state.selected;
+		var edge = null;
+		var model = ('model' in window ? window.model : null);
 		// console.log('loaded', this.state);
 		/*
 
 		Controls
-			select/multiselect(shift)/add, zoom to extent
+			select/multiselect(shift)/add, zoom to extent, snap to hex/quad grid, spread evenly
 		Graph data
 			name
 			# nodes
@@ -501,28 +495,49 @@ export default class Graph extends LuxComponent {
 							showAlways
 							/>
 					</h2>
+					{ model ?
+					<div>
+						<hr />
+						<div>
+							<h5>
+								nodes: {model.nodes.filter(node => !node.deleted).length} { node ? ' (1 selected)' : ''}
+							</h5>
 
-					{ node
-						? (
-							<Form onSubmit={this.updateSelected}>
-								<FormGroup>
-									<Label for="nodeCaption">node caption</Label>
-									<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
-								</FormGroup>
-								<FormGroup>
-									<Label for="nodeCaptionAngle">node caption angle</Label>
-									<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
-								</FormGroup>
-								<FormGroup>
-									<Label for="nodeSize">node size</Label>
-									<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
-								</FormGroup>
-								<Button id="button_update">update</Button>
-							</Form>
-						)
-						: ''
-					}
-
+							{ node
+								? (
+									<Form onSubmit={this.updateSelected}>
+										<FormGroup>
+											<Label for="nodeCaption">caption</Label>
+											<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
+										</FormGroup>
+										<FormGroup>
+											<Label for="nodeCaptionAngle">caption angle</Label>
+											<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
+										</FormGroup>
+										<FormGroup>
+											<Label for="nodeSize">size</Label>
+											<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
+										</FormGroup>
+										<Button id="button_update">update</Button>
+									</Form>
+								)
+								: ''
+							}
+						</div>
+						<hr />
+						<div>
+							<h5>
+								connections: {model.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
+							</h5>
+						</div>
+						<hr />
+						<div>
+							<h5>
+								groups: 42
+							</h5>
+						</div>
+					</div>
+					: '' }
 				</div>
 			</div>
 		);

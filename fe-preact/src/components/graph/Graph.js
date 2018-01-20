@@ -54,6 +54,14 @@ class Edge {
 
 export default class Graph extends LuxComponent {
 
+	/*
+	TODO
+	get persistence working. one option is to use Store objects for nodes and edges and groups,
+	another option is to use plain objects for nodes, edges, groups, but eliminate the infinite loops
+	by including a reference to the GraphStore instead of directly to the nodes. this would be replaced on persist by a reference.
+
+	*/
+
 	constructor(props) {
 		super(props);
 
@@ -77,6 +85,7 @@ export default class Graph extends LuxComponent {
 				e.source = this.state.nodes.find(n => n.id === e.source_id);
 				e.target = this.state.nodes.find(n => n.id === e.target_id);
 			})
+			this.state.transformSvg = m.transform;
 			this.state.transform = m.transform;
 		}
 		console.log('######loaded nodes from storage', this.state);
@@ -88,8 +97,7 @@ export default class Graph extends LuxComponent {
 		this.updateSelected = this.updateSelected.bind(this);
 		this.randomGraphClick = this.randomGraphClick.bind(this);
 		this.clickCreateNode = this.clickCreateNode.bind(this);
-
-
+		this.onSelectNode = this.onSelectNode.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -186,6 +194,9 @@ export default class Graph extends LuxComponent {
 			dragged: null
 		});
 		this.state.nodes.push(node);
+		this.setState({
+			nodes: this.state.nodes
+		})
 		this.redraw();
 	}
 
@@ -212,7 +223,12 @@ export default class Graph extends LuxComponent {
 		// });
 
 		function zoomed() {
-			that.container.attr("transform", d3.event.transform);
+			var t = d3.event.transform;
+			that.container.attr("transform", t);
+			that.setState({
+				transform: t,
+				transformSvg: that.container.attr("transform")
+			});
 			that.redraw();
 		}
 
@@ -220,10 +236,10 @@ export default class Graph extends LuxComponent {
 			.scaleExtent([0.2, 10])
 			.on("zoom", zoomed);
 
-		if (this.state.transform != null) {
+		if (this.state.transformSvg != null) {
 			//https://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4/38230545
-			var transform = parseSvg(this.state.transform);
-			this.container.attr("transform", this.state.transform);
+			var transform = parseSvg(this.state.transformSvg);
+			this.container.attr("transform", this.state.transformSvg);
 			this.svg.call(zoom.transform, d3.zoomIdentity.translate(transform.translateX, transform.translateY).scale(transform.scaleX));
 		}
 		this.svg.call(zoom);
@@ -250,7 +266,7 @@ export default class Graph extends LuxComponent {
 		}
 
 		function keydown() {
-			console.log('keydown');
+			// console.log('keydown');
 			if (!that.state.selected) return;
 			switch (d3.event.keyCode) {
 				case 8: // backspace
@@ -269,6 +285,30 @@ export default class Graph extends LuxComponent {
 		window.addEventListener("resize", this.redraw);
 		document.addEventListener('DOMContentLoaded', this.redraw, false);
 
+	}
+
+	onSelectNode(d) {
+		d3.event.preventDefault();
+		d3.event.stopPropagation();
+		console.log(d3.event);
+		if (d3.event.shiftKey && this.state.selected != null
+			&& this.state.selected !== d) {
+				if (d3.event.type == 'click') {
+					var e = new Edge(this.state.selected, d);
+					console.log('new edge', e, d3.event.type);
+					this.state.edges.push(e);
+					this.setState({
+						edges: this.state.edges
+					})
+				}
+		} else {
+			// console.log("mousedown", d, d3.event);
+			this.setState({
+				selected: d,
+				dragged: d3.event.type == "mousedown" ? d : null
+			});
+		}
+		this.redraw(true);
 	}
 
 	redraw(sort=false) {
@@ -331,27 +371,12 @@ export default class Graph extends LuxComponent {
 			.data(this.state.nodes.filter(node => !node.deleted));
 		var radius = 8.5
 
-		var onSelectNode = function(d) {
-			d3.event.preventDefault();
-			d3.event.stopPropagation();
-			if (d3.event.shiftKey && that.state.selected != null && that.state.selected !== d) {
-				that.state.edges.push(new Edge(that.state.selected, d));
-			} else {
-				// console.log("mousedown", d, d3.event);
-				that.setState({
-					selected: d,
-					dragged: d3.event.type == "mousedown" ? d : null
-				});
-			}
-			that.redraw(true);
-		}
-
 		circle.exit().remove();
 		circle.enter().append("circle")
 			.style("opacity", 0)
-			.on("mousedown", onSelectNode)
-			.on("click", onSelectNode)
-			.on("dblclick", onSelectNode)
+			.on("mousedown", this.onSelectNode)
+			.on("click", this.onSelectNode)
+			.on("dblclick", this.onSelectNode)
 			.transition(t)
 				.style("opacity", 1)
 		.selection().merge(circle)
@@ -368,25 +393,28 @@ export default class Graph extends LuxComponent {
 				return (d.size ? d.size : radius);
 			});
 
+		const MIN_LABEL_SIZE = 6.4;
+		const LABEL_SIZE_FACTOR = 2;
+		const LABEL_SIZE_DEFAULT = 10;
 		//Labels
 		var nodelabels = this.container.selectAll('.' + style.nodelabel)
-			.data(this.state.nodes.filter(node => !node.deleted));
+			.data(this.state.nodes.filter(node => !node.deleted && this.state.transform.k * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
 
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
 				.style("opacity", 0)
-				.on("mousedown", onSelectNode)
-				.on("click", onSelectNode)
-				.on("dblclick", onSelectNode)
+				.on("mousedown", this.onSelectNode)
+				.on("click", this.onSelectNode)
+				.on("dblclick", this.onSelectNode)
 				.transition(t)
 					.style("opacity", 1)
 			.selection().merge(nodelabels)
 			.style('font-size',
 				function(d){
 					if (d.size && d.size > 12) {
-						return '10px'
+						return LABEL_SIZE_DEFAULT + 'px'
 					}
-					return (d.size ? (d.size*2) + 'px' : '');
+					return (d.size ? (d.size*LABEL_SIZE_FACTOR) + 'px' : '');
 				})
 			.attrs({
 					"x":function(d){
@@ -539,6 +567,12 @@ export default class Graph extends LuxComponent {
 							<h5>
 								groups: 42
 							</h5>
+						</div>
+						<hr />
+						<div>
+							<h6>
+								zoom: {this.state.transform.k}
+							</h6>
 						</div>
 					</div>
 				</div>

@@ -41,15 +41,11 @@ class Node {
 
 class Edge {
 	constructor(source, target) {
-		this.source_id = source;
-		this.target_id = target;
+		this.source = source;
+		this.target = target;
+		this.source_id = source.id;
+		this.target_id = target.id;
 		this.deleted = false;
-	}
-	source() {
-		return model.nodes.find(n => n.id === this.source_id);
-	}
-	target() {
-		return model.nodes.find(n => n.id === this.target_id);
 	}
 	toString() {
 		return "Edge(" + this.source_id + "," + this.target_id + ")"
@@ -63,15 +59,37 @@ export default class Graph extends LuxComponent {
 
 		this.state = {
 			selected: null,
-			dragged: null
+			dragged: null,
+			nodes: [],
+			edges: [],
+			groups: []
 		};
+
 		this.setStore(props);
+
+		var model_from_storage = localStorage.getItem('model');
+		if (model_from_storage != null) {
+			console.log('loading model from local storage', model_from_storage);
+			var m = JSON.parse(model_from_storage);
+			this.state.nodes = m.nodes.map(o=>Object.setPrototypeOf(o, Node.prototype));
+			this.state.edges = m.edges.map(o=>Object.setPrototypeOf(o, Edge.prototype));
+			m.edges.forEach(e=>{
+				e.source = this.state.nodes.find(n => n.id === e.source_id);
+				e.target = this.state.nodes.find(n => n.id === e.target_id);
+			})
+			this.state.transform = m.transform;
+		}
+		console.log('######loaded nodes from storage', this.state);
 
 		this.update = this.update.bind(this);
 		this.createGraph = this.createGraph.bind(this);
 		this.getDimensions = this.getDimensions.bind(this);
 		this.redraw = this.redraw.bind(this);
 		this.updateSelected = this.updateSelected.bind(this);
+		this.randomGraphClick = this.randomGraphClick.bind(this);
+		this.clickCreateNode = this.clickCreateNode.bind(this);
+
+
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -134,37 +152,48 @@ export default class Graph extends LuxComponent {
 		}
 	}
 
-	createGraph() {
+	randomGraphClick(event) {
 
-		//TODO handle resize https://bl.ocks.org/curran/3a68b0c81991e2e94b19
-		var model = {};
-		window.model = model;
+		event.preventDefault();
+		event.stopPropagation();
+		if (confirm("Are you sure you want to delete current graph?")){
+			console.log("removing", JSON.stringify(this.state));
 
-		var that = this;
-
-		function random_graph(model) {
-			var d = that.getDimensions();
-			model.nodes = d3.range(1, 10).map(function(i) {
+			var d = this.getDimensions();
+			this.state.nodes = d3.range(1, 10).map(function(i) {
 				return new Node(i * d.width / 10,
 					50 + Math.random() * (d.height - 100));
 			})
-			var ns = model.nodes;
-			model.edges = d3.range(1, 10).map(function(i) {
+			var ns = this.state.nodes;
+			this.state.edges = d3.range(1, 10).map(function(i) {
 				var source = Math.floor(Math.random() * ns.length);
 				var dest = (source + (1 + Math.floor(Math.random() * (ns.length - 1))))
 						% ns.length;
-				return new Edge(ns[source].id, ns[dest].id);
+				return new Edge(ns[source], ns[dest]);
 			});
-		}
 
-		var model_from_storage = localStorage.getItem('model');
-		if (model_from_storage != null) {
-			// console.log('loading model from local storage', model_from_storage);
-			var m = JSON.parse(model_from_storage);
-			model.nodes = m.nodes.map(o=>Object.setPrototypeOf(o, Node.prototype));
-			model.edges = m.edges.map(o=>Object.setPrototypeOf(o, Edge.prototype));
-			model.transform = m.transform;
+			this.redraw(false);
 		}
+	}
+
+	clickCreateNode() {
+		console.log("click", d3.event, this.state.dragged);
+		var coord = d3.mouse(this.container.node());
+		var node = new Node(coord[0], coord[1], "(no name)");
+
+		this.setState({
+			selected: node,
+			dragged: null
+		});
+		this.state.nodes.push(node);
+		this.redraw();
+	}
+
+	createGraph() {
+
+		//TODO handle resize https://bl.ocks.org/curran/3a68b0c81991e2e94b19
+
+		var that = this;
 
 		this.svg = d3.select("#graph").append("svg")
 			.attr("id", 'graph_svg')
@@ -174,23 +203,13 @@ export default class Graph extends LuxComponent {
 			.on("mousemove", mousemove)
 			.on("mouseup", mouseup)
 			.on("keydown", keydown)
-			.on("click", click_create_node);
+			.on("click", this.clickCreateNode);
 
 		this.container = this.svg.append('g');//select("#layer1");
 		console.log('this.container', this.container);
 
-		d3.select("#button_random").on("click", function(){
-			d3.event.preventDefault();
-			d3.event.stopPropagation();
-			if (confirm("Are you sure you want to delete current graph?")){
-				console.log("removing", JSON.stringify({
-					nodes: model.nodes,
-					edges: model.edges
-				}));
-				random_graph(model);
-				that.redraw(false);
-			}
-		});
+		// d3.select("#button_random").on("click", function(){
+		// });
 
 		function zoomed() {
 			that.container.attr("transform", d3.event.transform);
@@ -201,28 +220,15 @@ export default class Graph extends LuxComponent {
 			.scaleExtent([0.2, 10])
 			.on("zoom", zoomed);
 
-		if (model.transform != null) {
+		if (this.state.transform != null) {
 			//https://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4/38230545
-			var transform = parseSvg(model.transform);
-			that.container.attr("transform", model.transform);
+			var transform = parseSvg(this.state.transform);
+			this.container.attr("transform", this.state.transform);
 			this.svg.call(zoom.transform, d3.zoomIdentity.translate(transform.translateX, transform.translateY).scale(transform.scaleX));
 		}
 		this.svg.call(zoom);
 
 		this.svg.node().focus();
-
-		function click_create_node() {
-			console.log("click", d3.event, that.state.dragged);
-			var coord = d3.mouse(that.container.node());
-			var node = new Node(coord[0], coord[1], "(no name)");
-
-			that.setState({
-				selected: node,
-				dragged: null
-			});
-			model.nodes.push(node);
-			that.redraw();
-		}
 
 		function mousemove() {
 			if (!that.state.dragged) return;
@@ -294,8 +300,8 @@ export default class Graph extends LuxComponent {
 
 		//Edges
 		var edge = this.container.selectAll("path")
-			.data(model.edges.filter(edge => (
-				!edge.deleted && !edge.source().deleted && !edge.target().deleted)));
+			.data(this.state.edges.filter(edge => (
+				!edge.deleted && !edge.source.deleted && !edge.target.deleted)));
 
 		edge.exit().remove();
 
@@ -315,21 +321,21 @@ export default class Graph extends LuxComponent {
 				.style("opacity", 1)
 		.selection().merge(edge)
 			.attr("d", function(a) {
-				return line([a.source(), a.target()]);
+				return line([a.source, a.target]);
 			}).classed(style.selected, function(d) {
 				return d === that.state.selected;
 			});
 
 		//Nodes
 		var circle = this.container.selectAll("circle")
-			.data(model.nodes.filter(node => !node.deleted));
+			.data(this.state.nodes.filter(node => !node.deleted));
 		var radius = 8.5
 
 		var onSelectNode = function(d) {
 			d3.event.preventDefault();
 			d3.event.stopPropagation();
 			if (d3.event.shiftKey && that.state.selected != null && that.state.selected !== d) {
-				model.edges.push(new Edge(that.state.selected.id, d.id));
+				that.state.edges.push(new Edge(that.state.selected, d));
 			} else {
 				// console.log("mousedown", d, d3.event);
 				that.setState({
@@ -364,7 +370,7 @@ export default class Graph extends LuxComponent {
 
 		//Labels
 		var nodelabels = this.container.selectAll('.' + style.nodelabel)
-			.data(model.nodes.filter(node => !node.deleted));
+			.data(this.state.nodes.filter(node => !node.deleted));
 
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
@@ -469,7 +475,6 @@ export default class Graph extends LuxComponent {
 	renderLoaded() {
 		var node = this.state.selected;
 		var edge = null;
-		var model = ('model' in window ? window.model : null);
 		// console.log('loaded', this.state);
 		/*
 
@@ -495,12 +500,11 @@ export default class Graph extends LuxComponent {
 							showAlways
 							/>
 					</h2>
-					{ model ?
 					<div>
 						<hr />
 						<div>
 							<h5>
-								nodes: {model.nodes.filter(node => !node.deleted).length} { node ? ' (1 selected)' : ''}
+								nodes: {this.state.nodes.filter(node => !node.deleted).length} { node ? ' (1 selected)' : ''}
 							</h5>
 
 							{ node
@@ -527,7 +531,7 @@ export default class Graph extends LuxComponent {
 						<hr />
 						<div>
 							<h5>
-								connections: {model.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
+								connections: {this.state.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
 							</h5>
 						</div>
 						<hr />
@@ -537,7 +541,6 @@ export default class Graph extends LuxComponent {
 							</h5>
 						</div>
 					</div>
-					: '' }
 				</div>
 			</div>
 		);

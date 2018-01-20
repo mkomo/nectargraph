@@ -66,7 +66,7 @@ export default class Graph extends LuxComponent {
 		super(props);
 
 		this.state = {
-			selected: null,
+			selectedNodes: null,
 			dragged: null,
 			nodes: [],
 			edges: [],
@@ -190,7 +190,8 @@ export default class Graph extends LuxComponent {
 		var node = new Node(coord[0], coord[1], "(no name)");
 
 		this.setState({
-			selected: node,
+			selectedNodes: node,
+			selectedEdges: null,
 			dragged: null
 		});
 		this.state.nodes.push(node);
@@ -198,6 +199,7 @@ export default class Graph extends LuxComponent {
 			nodes: this.state.nodes
 		})
 		this.redraw();
+		console.log(d3);
 	}
 
 	createGraph() {
@@ -266,17 +268,35 @@ export default class Graph extends LuxComponent {
 		}
 
 		function keydown() {
-			// console.log('keydown');
-			if (!that.state.selected) return;
-			switch (d3.event.keyCode) {
-				case 8: // backspace
-				case 46:
-					{ // delete
-						that.state.selected.deleted = true;
-						that.setState({selected: null});
-						that.redraw();
-						break;
-					}
+			console.log('keydown', d3.event);
+			that.setState({
+				key: d3.event.keyCode
+			});
+			if (that.state.selectedNodes) {
+				switch (d3.event.keyCode) {
+					case 8: // backspace
+					case 46:
+						{ // delete
+							that.state.selectedNodes.deleted = true;
+							that.setState({
+								selectedNodes: null
+							});
+							that.redraw();
+							break;
+						}
+				}
+			}
+			if (that.state.selectedEdges) {
+				switch (d3.event.keyCode) {
+					case 8: // backspace
+					case 46:
+						{ // delete
+							that.state.selectedEdges.deleted = true;
+							that.setState({selectedEdges: null});
+							that.redraw();
+							break;
+						}
+				}
 			}
 		}
 
@@ -290,11 +310,11 @@ export default class Graph extends LuxComponent {
 	onSelectNode(d) {
 		d3.event.preventDefault();
 		d3.event.stopPropagation();
-		console.log(d3.event);
-		if (d3.event.shiftKey && this.state.selected != null
-			&& this.state.selected !== d) {
-				if (d3.event.type == 'click') {
-					var e = new Edge(this.state.selected, d);
+		console.log(d3.event.type);
+		if (d3.event.ctrlKey && this.state.selectedNodes != null
+			&& this.state.selectedNodes !== d) {
+				if (d3.event.type == 'mousedown') {
+					var e = new Edge(this.state.selectedNodes, d);
 					console.log('new edge', e, d3.event.type);
 					this.state.edges.push(e);
 					this.setState({
@@ -304,7 +324,8 @@ export default class Graph extends LuxComponent {
 		} else {
 			// console.log("mousedown", d, d3.event);
 			this.setState({
-				selected: d,
+				selectedNodes: d,
+				selectedEdges: d3.event.shiftKey ? this.state.selectedEdges : null,
 				dragged: d3.event.type == "mousedown" ? d : null
 			});
 		}
@@ -351,7 +372,8 @@ export default class Graph extends LuxComponent {
 				d3.event.preventDefault();
 				d3.event.stopPropagation();
 				that.setState({
-					selected: d,
+					selectedEdges: d,
+					selectedNodes: d3.event.shiftKey ? that.state.selectedNodes : null,
 					dragged: null
 				});
 				that.redraw(true);
@@ -363,7 +385,7 @@ export default class Graph extends LuxComponent {
 			.attr("d", function(a) {
 				return line([a.source, a.target]);
 			}).classed(style.selected, function(d) {
-				return d === that.state.selected;
+				return d === that.state.selectedEdges;
 			});
 
 		//Nodes
@@ -381,7 +403,7 @@ export default class Graph extends LuxComponent {
 				.style("opacity", 1)
 		.selection().merge(circle)
 			.classed(style.selected, function(d) {
-				return d === that.state.selected;
+				return d === that.state.selectedNodes;
 			})
 			.attr("cx", function(d) {
 				return d.x;
@@ -408,7 +430,7 @@ export default class Graph extends LuxComponent {
 				.on("dblclick", this.onSelectNode)
 				.transition(t)
 					.style("opacity", 1)
-			.selection().merge(nodelabels)
+		.selection().merge(nodelabels)
 			.style('font-size',
 				function(d){
 					if (d.size && d.size > 12) {
@@ -441,7 +463,7 @@ export default class Graph extends LuxComponent {
 
 		//Cleanup (sorting)
 		if (sort) {
-			this.container.selectAll("path,circle").sort(function(a,b){
+			this.container.selectAll("path,circle,").sort(function(a,b){
 				if (a.constructor.name === Node.name){
 					if (b.constructor.name === Node.name){
 						return a.toString().localeCompare(b.toString());
@@ -463,9 +485,9 @@ export default class Graph extends LuxComponent {
 		console.log('updateSelected', arguments, this.svg);
 		e.preventDefault();
 		e.stopPropagation();
-		if (this.state.selected) {
-			this.state.selected.name = document.getElementById("nodeCaption").value;
-			this.state.selected.size = parseFloat(document.getElementById("nodeSize").value);
+		if (this.state.selectedNodes) {
+			this.state.selectedNodes.name = document.getElementById("nodeCaption").value;
+			this.state.selectedNodes.size = parseFloat(document.getElementById("nodeSize").value);
 			this.svg.node().focus();
 			this.redraw();
 		}
@@ -501,8 +523,8 @@ export default class Graph extends LuxComponent {
 	}
 
 	renderLoaded() {
-		var node = this.state.selected;
-		var edge = null;
+		var node = this.state.selectedNodes;
+		var edge = this.state.selectedEdges;
 		// console.log('loaded', this.state);
 		/*
 
@@ -542,10 +564,10 @@ export default class Graph extends LuxComponent {
 											<Label for="nodeCaption">caption</Label>
 											<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
 										</FormGroup>
-										<FormGroup>
+										{/*<FormGroup>
 											<Label for="nodeCaptionAngle">caption angle</Label>
 											<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
-										</FormGroup>
+										</FormGroup>*/}
 										<FormGroup>
 											<Label for="nodeSize">size</Label>
 											<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
@@ -559,7 +581,7 @@ export default class Graph extends LuxComponent {
 						<hr />
 						<div>
 							<h5>
-								connections: {this.state.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
+								edges: {this.state.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
 							</h5>
 						</div>
 						<hr />

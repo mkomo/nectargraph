@@ -43,7 +43,11 @@ export default class Graph extends LuxComponent {
 			selectedNodes: null,
 			selectedEdges: null,
 			dragged: null,
-			keys: []
+			keys: [],
+			background: {
+				url: "/assets/char-map-base-layer.svg",
+				containerSelector: "#layer1"
+			}
 		};
 
 		this.setStore(props);
@@ -83,22 +87,19 @@ export default class Graph extends LuxComponent {
 	}
 
 	originate() {
-		console.log("originate");
-		// fetch("http://localhost:8000/char-map-base-layer.svg").then(function(response) {
-		// 	return response.text();
-		// }).then(function(svg) {
-		// 	//console.log(svg);
-		// 	document.getElementsByTagName('body')[0].insertAdjacentHTML('beforeend', svg);
-		// })
-		new Promise((resolve, reject) => {
-			// We call resolve(...) when what we were doing asynchronously was successful, and reject(...) when it failed.
-			// In this example, we use setTimeout(...) to simulate async code.
-			// In reality, you will probably be using something like XHR or an HTML5 API.
-			setTimeout(function(){
-				resolve("Success!"); // Yay! Everything went well!
-			}, 250);
-		})
-		.then(()=>this.createGraph());
+		var p = this.state.background && this.state.background.url && this.state.background.containerSelector
+			? fetch(this.state.background.url).then(function(response) {
+				return response.text();
+			}).then(function(svg) {
+				return svg;
+			})
+			: new Promise((resolve) => {
+				resolve(null);
+			});
+		p.then((svg)=>{
+			console.log("originate", document, svg);
+			this.createGraph(svg);
+		});
 	}
 
 	getDimensions() {
@@ -166,15 +167,23 @@ export default class Graph extends LuxComponent {
 		}
 	}
 
-	createGraph() {
-
-		//TODO handle resize https://bl.ocks.org/curran/3a68b0c81991e2e94b19
-
+	createGraph(svg) {
 		var that = this;
 
-		this.svg = d3.select("#graph").append("svg")
-			.attr("id", 'graph_svg')
-			.attr('style', 'background-color: #fbf1cd');
+		d3.select("svg").remove();
+		if (svg) {
+			d3.select('#graph').html(svg);
+			console.log('downloaded svg');
+			this.svg = d3.select("svg")
+				.attr("id", 'graph_svg')
+				.attr('style', 'background-color: #fbf1cd');
+			this.container = this.svg.select(this.state.background.containerSelector);
+		} else {
+			this.svg = d3.select("#graph").append("svg")
+				.attr("id", 'graph_svg')
+				.attr('style', 'background-color: #fbf1cd');
+			this.container = this.svg.append('g');
+		}
 
 		this.svg
 			.on("mousemove", mousemove)
@@ -183,7 +192,6 @@ export default class Graph extends LuxComponent {
 			.on("keyup", keyup)
 			.on("click", this.clickPane);
 
-		this.container = this.svg.append('g');//select("#layer1");
 		console.log('this.container', this.container);
 
 		// d3.select("#button_random").on("click", function(){
@@ -526,7 +534,9 @@ export default class Graph extends LuxComponent {
 			background image/color
 		*/
 		return (
-			<div class={style.graph_container} id="graph">
+			<div class={style.graph_container}>
+				<div id="graph">
+				</div>
 				<div class={style.graph_form}>
 					<h2>
 						<InlineInput

@@ -11,11 +11,10 @@ import InlineInput from '../inline';
 
 import { Lux } from '../../stores/LuxStore'
 import {
-	GraphViewStore,
 	GraphStore,
 	Node,
-	GroupStore,
 	Edge,
+	GroupStore,
 	GroupConnectionStore
 } from '../../stores/GraphStore';
 
@@ -24,16 +23,16 @@ var util = new Util();
 
 var LuxComponent = Lux.Component.extend(Component);
 
-//TODO remove this? or keep this as a shim between the view and the store?
-
 export default class Graph extends LuxComponent {
 
 	/*
-	TODO
-	get persistence working. one option is to use Store objects for nodes and edges and groups,
-	another option is to use plain objects for nodes, edges, groups, but eliminate the infinite loops
-	by including a reference to the GraphStore instead of directly to the nodes. this would be replaced on persist by a reference.
-
+TODO
+implement groups
+spruce up edge Data view
+multiselect
+multi-line label with tspan
+x toggle show background
+x toggle show edges
 	*/
 
 	constructor(props) {
@@ -44,9 +43,13 @@ export default class Graph extends LuxComponent {
 			selectedEdges: null,
 			dragged: null,
 			keys: [],
+			edgesVisible: false,
+			backgroundVisible: false,
 			background: {
+				//TODO make this editable
 				url: "/assets/char-map-base-layer.svg",
-				containerSelector: "#layer1"
+				containerSelector: "#layer1",
+				bgid: 'g4599'
 			}
 		};
 
@@ -61,6 +64,7 @@ export default class Graph extends LuxComponent {
 		this.randomGraphClick = this.randomGraphClick.bind(this);
 		this.clickPane = this.clickPane.bind(this);
 		this.onSelectNode = this.onSelectNode.bind(this);
+		this.handleToggle = this.handleToggle.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -87,7 +91,9 @@ export default class Graph extends LuxComponent {
 	}
 
 	originate() {
-		var p = this.state.background && this.state.background.url && this.state.background.containerSelector
+		var p = this.state.background &&
+				this.state.background.url &&
+				this.state.background.containerSelector
 			? fetch(this.state.background.url).then(function(response) {
 				return response.text();
 			}).then(function(svg) {
@@ -97,7 +103,6 @@ export default class Graph extends LuxComponent {
 				resolve(null);
 			});
 		p.then((svg)=>{
-			console.log("originate", document, svg);
 			this.createGraph(svg);
 		});
 	}
@@ -108,9 +113,16 @@ export default class Graph extends LuxComponent {
 			width: window.innerWidth,
 			height: window.innerHeight -
 				(document.getElementById('graph_svg').getBoundingClientRect().top -
-					document.body.getBoundingClientRect().top)
-				- 8
+					document.body.getBoundingClientRect().top) - 8
 		}
+	}
+
+	handleToggle(key, value){
+		console.log('handleToggle', key, value);
+		var obj = {};
+		obj[key] = value;
+		this.setState(obj);
+		this.redraw(true);
 	}
 
 	randomGraphClick(event) {
@@ -229,6 +241,9 @@ export default class Graph extends LuxComponent {
 			var m = d3.mouse(that.container.node());
 			that.state.dragged.x = m[0];
 			that.state.dragged.y = m[1];
+			that.store.setState({
+				nodes: that.state.nodes
+			});
 			that.redraw();
 		}
 
@@ -292,7 +307,6 @@ export default class Graph extends LuxComponent {
 				this.redraw(true);
 			}
 		} else {
-			// console.log("mousedown", d, d3.event);
 			this.setState({
 				selectedNodes: d,
 				selectedEdges: d3.event.shiftKey ? this.state.selectedEdges : null,
@@ -309,6 +323,11 @@ export default class Graph extends LuxComponent {
 		// 		edges: model.edges,
 		// 		transform: this.container.attr("transform")
 		// }, null, '\t'));
+
+		var bg = (this.state.background && this.state.background.bgid) ? document.getElementById(this.state.background.bgid) : null;
+		if (bg != null) {
+			bg.setAttribute('visibility', (this.state.backgroundVisible ? 'visible' : 'hidden'));
+		}
 
 		let that = this;
 
@@ -331,7 +350,7 @@ export default class Graph extends LuxComponent {
 
 		//Edges
 		var edge = this.container.selectAll("path")
-			.data(this.state.edges.filter(edge => (this.store.line(edge) !== null)));
+			.data(this.state.edges.filter(edge => (this.state.edgesVisible && this.store.line(edge) !== null)));
 
 		edge.exit().remove();
 
@@ -406,10 +425,10 @@ export default class Graph extends LuxComponent {
 		.selection().merge(nodelabels)
 			.style('font-size',
 				function(d){
-					if (d.size && d.size > 12) {
+					if (!d.size || d.size * LABEL_SIZE_FACTOR > LABEL_SIZE_DEFAULT) {
 						return LABEL_SIZE_DEFAULT + 'px'
 					}
-					return (d.size ? (d.size*LABEL_SIZE_FACTOR) + 'px' : '');
+					return d.size*LABEL_SIZE_FACTOR + 'px';
 				})
 			.attrs({
 					"x":function(d){
@@ -436,15 +455,20 @@ export default class Graph extends LuxComponent {
 
 		//Cleanup (sorting)
 		if (sort) {
+			var comps = 0;
 			this.container.selectAll("path,circle").sort(function(a,b){
-				if (a.constructor.name === b.constructor.name){
+				comps++;
+				if (a.constructor.name == b.constructor.name){
 					return a.toString().localeCompare(b.toString());
-				} else if (a.constructor.name === Node.name){
+				} else if (a.constructor.name == Node.name){
 					return 1;
 				} else {
 					return -1;
 				}
 			});
+			console.log('sorting', comps);
+		} else {
+			console.log('not sorting');
 		}
 	}
 
@@ -593,7 +617,7 @@ export default class Graph extends LuxComponent {
 						<hr />
 						<div>
 							<h5>
-								groups: 42
+								groups: 0
 							</h5>
 						</div>
 						<hr />
@@ -601,18 +625,34 @@ export default class Graph extends LuxComponent {
 							<h6>
 								zoom: {this.state.transform ? this.state.transform.k : ''}
 							</h6>
+							{/*
 							<h6>
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</h6>
+							*/}
+<FormGroup check inline>
+	<Label for="backgroundVisibleCheck" check>
+		<Input type="checkbox"
+			id="backgroundVisibleCheck"
+			value={this.state.backgroundVisible}
+			onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
+		background
+	</Label>
+</FormGroup>
+<FormGroup check inline>
+	<Label for="edgesVisibleCheck" check>
+		<Input type="checkbox"
+			id="edgesVisibleCheck"
+			value={this.state.edgesVisible}
+			onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
+		edges
+	</Label>
+</FormGroup>
 						</div>
 					</div>
 				</div>
 			</div>
 		);
-
-		/**
-		TODO
-		*/
 	}
 
 }

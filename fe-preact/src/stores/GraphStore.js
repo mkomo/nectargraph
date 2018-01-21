@@ -1,19 +1,5 @@
 import { LuxLocalStore, Lux } from './LuxStore';
 
-class GraphViewStore extends LuxLocalStore {
-	constructor(props = {}) {
-		super(props);
-
-		this.state = {
-			graph: null,
-			selectedNodes: [],
-			selectedEdges: [],
-			mode: null,
-
-		}
-	}
-}
-
 
 class Node {
 	constructor(x, y, name, categories = []) {
@@ -165,10 +151,9 @@ class GroupConnectionStore extends LuxLocalStore {
 }
 
 export {
-	GraphViewStore,
 	GraphStore,
 	Node,
-	GroupStore,
 	Edge,
+	GroupStore,
 	GroupConnectionStore
 }

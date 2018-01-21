@@ -55,7 +55,7 @@ export default class Graph extends LuxComponent {
 		this.updateSelected = this.updateSelected.bind(this);
 		this.deleteSelected = this.deleteSelected.bind(this);
 		this.randomGraphClick = this.randomGraphClick.bind(this);
-		this.clickCreateNode = this.clickCreateNode.bind(this);
+		this.clickPane = this.clickPane.bind(this);
 		this.onSelectNode = this.onSelectNode.bind(this);
 	}
 
@@ -140,22 +140,30 @@ export default class Graph extends LuxComponent {
 		}
 	}
 
-	clickCreateNode() {
-		if (!d3.event.ctrlKey) return;
-		console.log("click", d3.event, this.state.dragged);
-		var coord = d3.mouse(this.container.node());
-		var node = new Node(coord[0], coord[1], "(no name)");
+	clickPane() {
+		if (!d3.event.ctrlKey) {
+			this.setState({
+				selectedNodes: null,
+				selectedEdges: null,
+				dragged: null,
+			});
+			this.redraw();
+		} else {
+			console.log("click", d3.event, this.state.dragged);
+			var coord = d3.mouse(this.container.node());
+			var node = new Node(coord[0], coord[1], "(no name)");
 
-		this.state.nodes.push(node);
-		this.setState({
-			selectedNodes: node,
-			selectedEdges: null,
-			dragged: null,
-		});
-		this.store.setState({
-			nodes: this.state.nodes
-		});
-		this.redraw();
+			this.state.nodes.push(node);
+			this.setState({
+				selectedNodes: node,
+				selectedEdges: null,
+				dragged: null,
+			});
+			this.store.setState({
+				nodes: this.state.nodes
+			});
+			this.redraw();
+		}
 	}
 
 	createGraph() {
@@ -173,7 +181,7 @@ export default class Graph extends LuxComponent {
 			.on("mouseup", mouseup)
 			.on("keydown", keydown)
 			.on("keyup", keyup)
-			.on("click", this.clickCreateNode);
+			.on("click", this.clickPane);
 
 		this.container = this.svg.append('g');//select("#layer1");
 		console.log('this.container', this.container);

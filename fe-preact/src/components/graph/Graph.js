@@ -183,6 +183,10 @@ export default class Graph extends LuxComponent {
 				return new Edge(ns[source], ns[dest]);
 			});
 
+			this.setState({
+				nodes: this.state.nodes,
+				edges: this.state.edges
+			});
 			this.redraw(false);
 		}
 	}
@@ -193,15 +197,13 @@ export default class Graph extends LuxComponent {
 		var coord = d3.mouse(this.container.node());
 		var node = new Node(coord[0], coord[1], "(no name)");
 
+		this.state.nodes.push(node);
 		this.setState({
 			selectedNodes: node,
 			selectedEdges: null,
-			dragged: null
-		});
-		this.state.nodes.push(node);
-		this.setState({
+			dragged: null,
 			nodes: this.state.nodes
-		})
+		});
 		this.redraw();
 	}
 
@@ -348,7 +350,7 @@ export default class Graph extends LuxComponent {
 				.y(d=>d.y);
 
 		var d = this.getDimensions();
-		// console.log("redraw", d.width, d.height);
+
 		this.svg
 			.attr("width", d.width)
 			.attr("height", d.height)
@@ -421,7 +423,8 @@ export default class Graph extends LuxComponent {
 		const LABEL_SIZE_DEFAULT = 10;
 		//Labels
 		var nodelabels = this.container.selectAll('.' + style.nodelabel)
-			.data(this.state.nodes.filter(node => !node.deleted && this.state.transform.k * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
+			.data(this.state.nodes.filter(node => !node.deleted
+				&& this.state.transform.k * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
 
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
@@ -481,7 +484,11 @@ export default class Graph extends LuxComponent {
 		var deleteEdges = type == null || type == 'edges';
 		if (this.state.selectedNodes) {
 			this.state.selectedNodes.name = document.getElementById("nodeCaption").value;
-			this.state.selectedNodes.size = parseFloat(document.getElementById("nodeSize").value);
+			var size = document.getElementById("nodeSize").value;
+			this.state.selectedNodes.size = size.length == 0 ? null : parseFloat(size);
+			this.setState({
+				selectedNodes: this.state.selectedNodes
+			});
 			this.svg.node().focus();
 			this.redraw();
 		}

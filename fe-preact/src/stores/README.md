@@ -13,3 +13,4 @@ If there's any component state that doesn't need to be persisted as part of stor
 - [ ] separate lux state from regular state
 - [ ] handle key rehoming
 - [ ] move init state out of constructor
+- [ ] only call setState on keys in store.state (so that persisted objects don't get bloated), but pass along those other keys to the components

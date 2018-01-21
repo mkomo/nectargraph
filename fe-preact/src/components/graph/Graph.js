@@ -13,9 +13,9 @@ import { Lux } from '../../stores/LuxStore'
 import {
 	GraphViewStore,
 	GraphStore,
-	NodeStore,
+	Node,
 	GroupStore,
-	NodeConnectionStore,
+	Edge,
 	GroupConnectionStore
 } from '../../stores/GraphStore';
 
@@ -25,32 +25,6 @@ var util = new Util();
 var LuxComponent = Lux.Component.extend(Component);
 
 //TODO remove this? or keep this as a shim between the view and the store?
-class Node {
-	constructor(x, y, name, categories = []) {
-		this.x = x;
-		this.y = y;
-		this.name = name;
-		this.id = Math.random().toString(36).substring(2);
-		this.categories = categories;
-		this.deleted = false;
-	}
-	toString() {
-		return "Node(" + this.x + "," + this.y + ")"
-	}
-}
-
-class Edge {
-	constructor(source, target) {
-		this.source = source;
-		this.target = target;
-		this.source_id = source.id;
-		this.target_id = target.id;
-		this.deleted = false;
-	}
-	toString() {
-		return "Edge(" + this.source_id + "," + this.target_id + ")"
-	}
-}
 
 export default class Graph extends LuxComponent {
 
@@ -67,30 +41,12 @@ export default class Graph extends LuxComponent {
 
 		this.state = {
 			selectedNodes: null,
+			selectedEdges: null,
 			dragged: null,
-			nodes: [],
-			edges: [],
-			groups: [],
 			keys: []
 		};
 
 		this.setStore(props);
-
-		var model_from_storage = localStorage.getItem('model');
-		if (model_from_storage != null) {
-			console.log('loading model from local storage');
-			console.debug(model_from_storage)
-			var m = JSON.parse(model_from_storage);
-			this.state.nodes = m.nodes.map(o=>Object.setPrototypeOf(o, Node.prototype));
-			this.state.edges = m.edges.map(o=>Object.setPrototypeOf(o, Edge.prototype));
-			m.edges.forEach(e=>{
-				e.source = this.state.nodes.find(n => n.id === e.source_id);
-				e.target = this.state.nodes.find(n => n.id === e.target_id);
-			})
-			this.state.transformSvg = m.transform;
-			this.state.transform = m.transform;
-		}
-		console.log('######loaded nodes from storage', this.state);
 
 		this.update = this.update.bind(this);
 		this.createGraph = this.createGraph.bind(this);
@@ -124,13 +80,6 @@ export default class Graph extends LuxComponent {
 	update(state) {
 		console.log(this, state);
 		this.store.setState(state);
-	}
-
-	componentDidUpdate() {
-		if (!this.isOriginated) {
-			this.originate();
-			this.isOriginated = true;
-		}
 	}
 
 	originate() {
@@ -180,10 +129,10 @@ export default class Graph extends LuxComponent {
 				var source = Math.floor(Math.random() * ns.length);
 				var dest = (source + (1 + Math.floor(Math.random() * (ns.length - 1))))
 						% ns.length;
-				return new Edge(ns[source], ns[dest]);
+				return new Edge(this.store, ns[source], ns[dest]);
 			});
 
-			this.setState({
+			this.store.setState({
 				nodes: this.state.nodes,
 				edges: this.state.edges
 			});
@@ -202,6 +151,8 @@ export default class Graph extends LuxComponent {
 			selectedNodes: node,
 			selectedEdges: null,
 			dragged: null,
+		});
+		this.store.setState({
 			nodes: this.state.nodes
 		});
 		this.redraw();
@@ -233,7 +184,7 @@ export default class Graph extends LuxComponent {
 		function zoomed() {
 			var t = d3.event.transform;
 			that.container.attr("transform", t);
-			that.setState({
+			that.store.setState({
 				transform: t,
 				transformSvg: that.container.attr("transform")
 			});
@@ -316,10 +267,10 @@ export default class Graph extends LuxComponent {
 		if (d3.event.ctrlKey && this.state.selectedNodes != null
 				&& this.state.selectedNodes !== d) {
 			if (d3.event.type == 'mousedown') {
-				var e = new Edge(this.state.selectedNodes, d);
+				var e = new Edge(this.store, this.state.selectedNodes, d);
 				console.log('new edge', e, d3.event.type);
 				this.state.edges.push(e);
-				this.setState({
+				this.store.setState({
 					edges: this.state.edges
 				});
 				this.redraw(true);
@@ -364,8 +315,7 @@ export default class Graph extends LuxComponent {
 
 		//Edges
 		var edge = this.container.selectAll("path")
-			.data(this.state.edges.filter(edge => (
-				!edge.deleted && !edge.source.deleted && !edge.target.deleted)));
+			.data(this.state.edges.filter(edge => (this.store.line(edge) !== null)));
 
 		edge.exit().remove();
 
@@ -386,7 +336,7 @@ export default class Graph extends LuxComponent {
 				.style("opacity", 1)
 		.selection().merge(edge)
 			.attr("d", function(a) {
-				return line([a.source, a.target]);
+				return line(that.store.line(a));
 			}).classed(style.selected, function(d) {
 				return d === that.state.selectedEdges;
 			});
@@ -421,10 +371,13 @@ export default class Graph extends LuxComponent {
 		const MIN_LABEL_SIZE = 6.4;
 		const LABEL_SIZE_FACTOR = 2;
 		const LABEL_SIZE_DEFAULT = 10;
+
+		var factor = this.state.transform ? this.state.transform.k : 1;
+
 		//Labels
 		var nodelabels = this.container.selectAll('.' + style.nodelabel)
 			.data(this.state.nodes.filter(node => !node.deleted
-				&& this.state.transform.k * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
+				&& factor * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
 
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
@@ -486,8 +439,8 @@ export default class Graph extends LuxComponent {
 			this.state.selectedNodes.name = document.getElementById("nodeCaption").value;
 			var size = document.getElementById("nodeSize").value;
 			this.state.selectedNodes.size = size.length == 0 ? null : parseFloat(size);
-			this.setState({
-				selectedNodes: this.state.selectedNodes
+			this.store.setState({
+				nodes: this.state.nodes
 			});
 			this.svg.node().focus();
 			this.redraw();
@@ -546,6 +499,10 @@ export default class Graph extends LuxComponent {
 	}
 
 	renderLoaded() {
+		if (!this.isOriginated) {
+			this.originate();
+			this.isOriginated = true;
+		}
 		var node = this.state.selectedNodes;
 		var edge = this.state.selectedEdges;
 		// console.log('loaded', this.state);
@@ -624,7 +581,7 @@ export default class Graph extends LuxComponent {
 						<hr />
 						<div>
 							<h6>
-								zoom: {this.state.transform.k}
+								zoom: {this.state.transform ? this.state.transform.k : ''}
 							</h6>
 							<h6>
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}

@@ -15,6 +15,33 @@ class GraphViewStore extends LuxLocalStore {
 }
 
 
+class Node {
+	constructor(x, y, name, categories = []) {
+		this.x = x;
+		this.y = y;
+		this.name = name;
+		this.id = Math.random().toString(36).substring(2);
+		this.categories = categories;
+		this.deleted = false;
+	}
+	toString() {
+		return "Node(" + this.x + "," + this.y + ")"
+	}
+}
+
+class Edge {
+	constructor(graph, source, target) {
+		this.graphStore = graph;
+		this.source_id = source.id;
+		this.target_id = target.id;
+		this.deleted = false;
+	}
+
+	toString() {
+		return "Edge(" + this.source_id + "," + this.target_id + ")"
+	}
+}
+
 var keys = [
 	a => a.guid ? "/" + a.guid : undefined
 ]
@@ -29,11 +56,37 @@ class GraphStore extends LuxLocalStore {
 			factoids: {},
 			size: [0, 0],
 			nodes: [],
+			edges: [],
 			groups: [],
-			nodeConnections: [],
-			groupConnections: []
+			groupEdges: []
 		}
 
+		// var model_from_storage = localStorage.getItem('model');
+		// if (model_from_storage != null) {
+		// 	var m = JSON.parse(model_from_storage);
+		// 	console.log('loading model from local storage', m.transform);
+		// 	console.debug(model_from_storage);
+		// 	this.state.nodes = m.nodes.map(o=>Object.setPrototypeOf(o, Node.prototype));
+		// 	this.state.edges = m.edges.map(o=>Object.setPrototypeOf(o, Edge.prototype));
+		// 	m.edges.forEach(e=>{
+		// 		e.graphStore = this;
+		// 		// e.source = this.state.nodes.find(n => n.id === e.source_id);
+		// 		// e.target = this.state.nodes.find(n => n.id === e.target_id);
+		// 	})
+		// 	this.state.transformSvg = m.transform;
+		// 	this.state.transform = m.transform;
+		// }
+		// console.log('######loaded nodes from storage', this.state);
+
+	}
+
+	line(edge) {
+		var s = this.state.nodes.find(n => n.id === edge.source_id);
+		var t = this.state.nodes.find(n => n.id === edge.target_id);
+
+		return  (!edge.deleted && !t.deleted && !s.deleted)
+			? [s, t]
+			: null
 	}
 
 	delete() {
@@ -114,8 +167,8 @@ class GroupConnectionStore extends LuxLocalStore {
 export {
 	GraphViewStore,
 	GraphStore,
-	NodeStore,
+	Node,
 	GroupStore,
-	NodeConnectionStore,
+	Edge,
 	GroupConnectionStore
 }

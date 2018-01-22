@@ -458,11 +458,14 @@ x toggle show edges
 			var comps = 0;
 			this.container.selectAll("path,circle").sort(function(a,b){
 				comps++;
-				if (a.constructor.name == b.constructor.name){
-					return a.toString().localeCompare(b.toString());
-				} else if (a.constructor.name == Node.name){
+				if (a.type ===  b.type){
+					//a and b are either both nodes or both edges
+					return a.id.localeCompare(b.id);
+				} else if (a.type ===  Node.type){
+					// a is an edge and b is not
 					return 1;
 				} else {
+					// b is an edge and a is not
 					return -1;
 				}
 			});
@@ -549,7 +552,7 @@ x toggle show edges
 		/*
 
 		Controls
-			select/multiselect(shift)/add, zoom to extent, snap to hex/quad grid, spread evenly
+			select/multiselect(shift)/add, zoom to extent, snap to hex/quad grid, spread evenly, undo last change
 		Graph data
 			name
 			# nodes
@@ -634,7 +637,7 @@ x toggle show edges
 	<Label for="backgroundVisibleCheck" check>
 		<Input type="checkbox"
 			id="backgroundVisibleCheck"
-			value={this.state.backgroundVisible}
+			checked={this.state.backgroundVisible}
 			onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
 		background
 	</Label>
@@ -643,7 +646,7 @@ x toggle show edges
 	<Label for="edgesVisibleCheck" check>
 		<Input type="checkbox"
 			id="edgesVisibleCheck"
-			value={this.state.edgesVisible}
+			checked={this.state.edgesVisible}
 			onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
 		edges
 	</Label>

@@ -3,30 +3,30 @@ import { LuxLocalStore, Lux } from './LuxStore';
 
 class Node {
 	constructor(x, y, name, categories = []) {
+		this.id = Lux.guid();
+		this.type = 'node';
 		this.x = x;
 		this.y = y;
 		this.name = name;
-		this.id = Math.random().toString(36).substring(2);
 		this.categories = categories;
 		this.deleted = false;
 	}
-	toString() {
-		return "Node(" + this.x + "," + this.y + ")"
-	}
 }
+
+Node.type = 'node';
 
 class Edge {
 	constructor(graph, source, target) {
+		this.id = Lux.guid();
+		this.type = 'edge';
 		this.graphStore = graph;
 		this.source_id = source.id;
 		this.target_id = target.id;
 		this.deleted = false;
 	}
-
-	toString() {
-		return "Edge(" + this.source_id + "," + this.target_id + ")"
-	}
 }
+
+Edge.type = 'edge';
 
 var keys = [
 	a => a.guid ? "/" + a.guid : undefined

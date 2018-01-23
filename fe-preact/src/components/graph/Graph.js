@@ -18,9 +18,6 @@ import {
 	GroupConnectionStore
 } from '../../stores/GraphStore';
 
-import { Util, Split } from '../util';
-var util = new Util();
-
 var LuxComponent = Lux.Component.extend(Component);
 
 export default class Graph extends LuxComponent {
@@ -31,8 +28,12 @@ implement groups
 spruce up edge Data view
 multiselect
 multi-line label with tspan
+move all graph style out of css (for download and flexibility)
+x download JSON, download svg
 x toggle show background
 x toggle show edges
+
+nodes edges categories traversals adjacency reachability = nectar
 	*/
 
 	constructor(props) {
@@ -65,6 +66,8 @@ x toggle show edges
 		this.clickPane = this.clickPane.bind(this);
 		this.onSelectNode = this.onSelectNode.bind(this);
 		this.handleToggle = this.handleToggle.bind(this);
+		this.downloadGraphJson = this.downloadGraphJson.bind(this);
+		this.downloadGraphSvg = this.downloadGraphSvg.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -155,12 +158,14 @@ x toggle show edges
 
 	clickPane() {
 		if (!d3.event.ctrlKey) {
-			this.setState({
-				selectedNodes: null,
-				selectedEdges: null,
-				dragged: null,
-			});
-			this.redraw();
+			if (this.state.selectedNodes || this.state.selectedEdges || this.state.dragged) {
+				this.setState({
+					selectedNodes: null,
+					selectedEdges: null,
+					dragged: null,
+				});
+				this.redraw();
+			}
 		} else {
 			console.log("click", d3.event, this.state.dragged);
 			var coord = d3.mouse(this.container.node());
@@ -475,6 +480,34 @@ x toggle show edges
 		}
 	}
 
+	downloadGraphJson() {
+		var dataStr = "data:text/json;charset=utf-8," +
+			encodeURIComponent(
+				JSON.stringify(Lux.removeCircular(this.state), null, 1)
+			);
+		this.download(dataStr, this.state.name + ".json");
+	}
+
+	downloadGraphSvg() {
+		var html = this.svg
+			.attr("title", this.state.name)
+			.attr("version", 1.1)
+			.attr("xmlns", "http://www.w3.org/2000/svg")
+			.node().parentNode.innerHTML;
+		var dataStr = "data:image/svg+xml;charset=utf-8," +
+			encodeURIComponent( html );
+		this.download(dataStr, this.state.name + ".svg");
+	}
+
+	download(dataStr, filename) {
+		var exportName = this.state.name;
+		var downloadAnchorNode = document.createElement('a');
+		downloadAnchorNode.setAttribute("href",     dataStr);
+		downloadAnchorNode.setAttribute("download", filename);
+		downloadAnchorNode.click();
+		downloadAnchorNode.remove();
+	}
+
 	updateSelected(type = null){
 		var deleteNodes = type == null || type == 'nodes';
 		var deleteEdges = type == null || type == 'edges';
@@ -633,24 +666,29 @@ x toggle show edges
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</h6>
 							*/}
-<FormGroup check inline>
-	<Label for="backgroundVisibleCheck" check>
-		<Input type="checkbox"
-			id="backgroundVisibleCheck"
-			checked={this.state.backgroundVisible}
-			onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
-		background
-	</Label>
-</FormGroup>
-<FormGroup check inline>
-	<Label for="edgesVisibleCheck" check>
-		<Input type="checkbox"
-			id="edgesVisibleCheck"
-			checked={this.state.edgesVisible}
-			onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
-		edges
-	</Label>
-</FormGroup>
+							<FormGroup check inline>
+								<Label for="backgroundVisibleCheck" check>
+									<Input type="checkbox"
+										id="backgroundVisibleCheck"
+										checked={this.state.backgroundVisible}
+										onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
+									background
+								</Label>
+							</FormGroup>
+							<FormGroup check inline>
+								<Label for="edgesVisibleCheck" check>
+									<Input type="checkbox"
+										id="edgesVisibleCheck"
+										checked={this.state.edgesVisible}
+										onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
+									edges
+								</Label>
+							</FormGroup>
+						</div>
+						<div class="btn-group">
+							<Button className='btn-sm' onClick={this.downloadGraphSvg}><i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg</Button>
+							&nbsp;
+							<Button className='btn-sm' onClick={this.downloadGraphJson}><i class="fa fa-arrow-circle-down" aria-hidden="true"></i> json</Button>
 						</div>
 					</div>
 				</div>

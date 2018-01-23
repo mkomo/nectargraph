@@ -231,7 +231,9 @@ var Lux = {
 
 	Component : LuxComponent,
 
-	init: luxInit
+	init: luxInit,
+
+	removeCircular: removeCircular
 };
 
 class LuxAbstractStore {
@@ -307,7 +309,7 @@ function luxLocalStorageName() {
 	return '__lux_store_storynotes';
 }
 
-function luxCacheFlatten(o, depth = 0, maxDepth = 2, filter = null) {
+function removeCircular(o, depth = 0, maxDepth = 2, filter = null) {
 	if (typeof o === 'object') {
 		if (o === null || typeof o === 'undefined') {
 			return o;
@@ -325,7 +327,7 @@ function luxCacheFlatten(o, depth = 0, maxDepth = 2, filter = null) {
 		var output = Array.isArray(o) ? [] : {};
 		for (var key in o) {
 			if (!filter || filter.includes(key)) {
-				output[key] = luxCacheFlatten(o[key], depth + 1);
+				output[key] = removeCircular(o[key], depth + 1);
 			}
 		}
 		return output;
@@ -373,7 +375,7 @@ class LuxLocalStore extends LuxMemStore {
 			//TODO create an action queue
 			return;
 		}
-		var denested = luxCacheFlatten(cache);
+		var denested = removeCircular(cache);
 		var localStorageName = luxLocalStorageName();
 		localStorage.setItem(localStorageName, JSON.stringify(denested, null, 2));
 		console.debug('saved local storage', JSON.stringify(denested, null, 2));

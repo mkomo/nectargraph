@@ -50,25 +50,12 @@ svg:focus{
 	height: 4.5em;
 }
 
+
+/* SVG STUFF BEGIN -- include only interactive styles, anything else should be applied directly w/d3 for download */
 text.nodelabel {
 	cursor: move;
 }
-rect {
-	fill: none;
-	pointer-events: all;
-}
 circle, .line {
-	fill: none;
-	stroke: #444444;
-	stroke-width: 2.5px;
 	cursor: move;
 }
-circle {
-	fill: rgba(255,255,255,1.0);
-}
-.selected {
-	fill: #ff7f0e;
-}
-.line.selected {
-	stroke: #ff7f0e;
-}
+/* SVG STUFF END */

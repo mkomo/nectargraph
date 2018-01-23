@@ -25,10 +25,10 @@ export default class Graph extends LuxComponent {
 	/*
 TODO
 implement groups
-spruce up edge Data view
+spruce up edge Data view - source, target, directionality, label
 multiselect
 multi-line label with tspan
-move all graph style out of css (for download and flexibility)
+x move all graph style out of css (for download and flexibility)
 x download JSON, download svg
 x toggle show background
 x toggle show edges
@@ -193,16 +193,15 @@ nodes edges categories traversals adjacency reachability = nectar
 			console.log('downloaded svg');
 			this.svg = d3.select("svg")
 				.attr("id", 'graph_svg')
-				.attr('style', 'background-color: #fbf1cd');
 			this.container = this.svg.select(this.state.background.containerSelector);
 		} else {
 			this.svg = d3.select("#graph").append("svg")
 				.attr("id", 'graph_svg')
-				.attr('style', 'background-color: #fbf1cd');
 			this.container = this.svg.append('g');
 		}
 
-		this.svg
+		this.svg.style('background-color','#fbf1cd')
+			.style('font-family','sans-serif')
 			.on("mousemove", mousemove)
 			.on("mouseup", mouseup)
 			.on("keydown", keydown)
@@ -375,6 +374,8 @@ nodes edges categories traversals adjacency reachability = nectar
 			.transition(t)
 				.style("opacity", 1)
 		.selection().merge(edge)
+			.style('stroke', d=>d===that.state.selectedEdges ? '#ff7f0e' : '#444')
+			.style('stroke-width','2.5px')
 			.attr("d", function(a) {
 				return line(that.store.line(a));
 			}).classed(style.selected, function(d) {
@@ -398,6 +399,7 @@ nodes edges categories traversals adjacency reachability = nectar
 			.classed(style.selected, function(d) {
 				return d === that.state.selectedNodes;
 			})
+			.style('fill', d=>d===that.state.selectedNodes ? '#ff7f0e' : 'rgba(255,255,255,1.0)')
 			.attr("cx", function(d) {
 				return d.x;
 			})
@@ -406,7 +408,9 @@ nodes edges categories traversals adjacency reachability = nectar
 			})
 			.attr("r", function(d){
 				return (d.size ? d.size : radius);
-			});
+			})
+			.style('stroke','#444')
+			.style('stroke-width','2.5px');
 
 		const MIN_LABEL_SIZE = 6.4;
 		const LABEL_SIZE_FACTOR = 2;

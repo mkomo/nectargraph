@@ -474,9 +474,9 @@ nodes edges categories traversals adjacency reachability = nectar
 					return -1;
 				}
 			});
-			console.log('sorting', comps);
+			console.debug('sorting', comps);
 		} else {
-			console.log('not sorting');
+			console.debug('not sorting');
 		}
 	}
 
@@ -581,11 +581,16 @@ nodes edges categories traversals adjacency reachability = nectar
 		}
 		var node = this.state.selectedNodes;
 		var edge = this.state.selectedEdges;
+		var expanded = node || edge;
 		// console.log('loaded', this.state);
 		/*
 
 		Controls
-			select/multiselect(shift)/add, zoom to extent, snap to hex/quad grid, spread evenly, undo last change
+			select/multiselect(shift)/add
+			zoom to extent
+			snap to hex/quad grid
+			spread evenly
+			undo last change
 		Graph data
 			name
 			# nodes
@@ -595,101 +600,101 @@ nodes edges categories traversals adjacency reachability = nectar
 		*/
 		return (
 			<div class={style.graph_container}>
-				<div id="graph">
-				</div>
-				<div class={style.graph_form}>
-					<h2>
-						<InlineInput
-							value={this.state.name}
-							onChange={this.update}
-							propName="name"
-							placeholder="(untitled)"
-							width="100%"
-							showAlways
-							/>
-					</h2>
-					<div>
-						<hr />
-						<div>
-							<h5>
-								nodes: {this.state.nodes.filter(node => !node.deleted).length} { node ? (<small>(1 selected)</small>) : ''}
-							</h5>
-
-							{ node
-								? (
-									<Form onSubmit={e=>{e.preventDefault();this.updateSelected()}}>
-										<FormGroup>
-											<Label for="nodeCaption">caption</Label>
-											<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
-										</FormGroup>
-										{/*<FormGroup>
-											<Label for="nodeCaptionAngle">caption angle</Label>
-											<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
-										</FormGroup>*/}
-										<FormGroup>
-											<Label for="nodeSize">size</Label>
-											<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
-										</FormGroup>
-										<Button onClick={e=>this.updateSelected('nodes')}>update</Button>{' '}
-										<Button onClick={e=>this.deleteSelected('nodes')}>delete</Button>
-									</Form>
-								)
-								: ''
-							}
+				<div id="graph"></div>
+				<div class={expanded ? style.graph_info + ' ' + style.graph_info_expanded : style.graph_info}>
+					<div class={style.graph_form}>
+						<h2>
+							<InlineInput
+								value={this.state.name}
+								onChange={this.update}
+								propName="name"
+								placeholder="(untitled)"
+								width="100%"
+								showAlways
+								/>
+						</h2>
+						<div class="small">
+							{this.state.nodes.filter(node => !node.deleted).length} nodes,&nbsp;
+							{this.state.edges.filter(edge => !edge.deleted).length} edges,&nbsp;0 groups
 						</div>
-						<hr />
 						<div>
-							<h5>
-								edges: {this.state.edges.filter(edges => !edges.deleted).length} { edge ? ' (1 selected)' : ''}
-							</h5>
-							{ edge
-								?
-									<Form onSubmit={this.updateSelected}>
-										<Button onClick={e=>this.deleteSelected('edges')}>delete</Button>
-									</Form>
-								: ''
-							}
-						</div>
-						<hr />
-						<div>
-							<h5>
-								groups: 0
-							</h5>
-						</div>
-						<hr />
-						<div>
+							{/*
 							<h6>
 								zoom: {this.state.transform ? this.state.transform.k : ''}
 							</h6>
-							{/*
 							<h6>
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</h6>
 							*/}
-							<FormGroup check inline>
-								<Label for="backgroundVisibleCheck" check>
+							<hr />
+							<span class="btn-group" data-toggle="buttons">
+								<Label for="backgroundVisibleCheck" className='btn btn-primary btn-sm'>
 									<Input type="checkbox"
 										id="backgroundVisibleCheck"
 										checked={this.state.backgroundVisible}
 										onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
-									background
+									<i class={this.state.backgroundVisible ? 'fa fa-check-square' : 'fa fa-square'} aria-hidden="true"></i>
+									&nbsp;
+									bg
 								</Label>
-							</FormGroup>
-							<FormGroup check inline>
-								<Label for="edgesVisibleCheck" check>
+								&nbsp;
+								<Label for="edgesVisibleCheck" className='btn btn-primary btn-sm'>
 									<Input type="checkbox"
 										id="edgesVisibleCheck"
 										checked={this.state.edgesVisible}
 										onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
-									edges
+									<i class={this.state.edgesVisible ? 'fa fa-check-square' : 'fa fa-square'} aria-hidden="true"></i>
+									&nbsp;
+									e
 								</Label>
-							</FormGroup>
-						</div>
-						<div class="btn-group">
-							<Button className='btn-sm' onClick={this.downloadGraphSvg}><i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg</Button>
+							</span>
 							&nbsp;
-							<Button className='btn-sm' onClick={this.downloadGraphJson}><i class="fa fa-arrow-circle-down" aria-hidden="true"></i> json</Button>
+							<span class="btn-group">
+								<Button className='btn-sm' onClick={this.downloadGraphSvg}>
+									<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg</Button>
+								&nbsp;
+								<Button className='btn-sm' onClick={this.downloadGraphJson}>
+								<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> json</Button>
+							</span>
 						</div>
+					</div>
+					<div>
+						{ node
+							? (
+								<Form onSubmit={e=>{e.preventDefault();this.updateSelected()}}>
+									<hr />
+									<h5>
+										{ node ? (<small>1 node selected</small>) : ''}
+									</h5>
+									<FormGroup>
+										<Label for="nodeCaption">caption</Label>
+										<Input bsSize="sm" type="textarea" name="nodeCaption" id="nodeCaption" value={node.name}/>
+									</FormGroup>
+									{/*<FormGroup>
+										<Label for="nodeCaptionAngle">caption angle</Label>
+										<Input bsSize="sm" name="nodeCaptionAngle" id="nodeCaptionAngle" />
+									</FormGroup>*/}
+									<FormGroup>
+										<Label for="nodeSize">size</Label>
+										<Input bsSize="sm" name="nodeSize" id="nodeSize" value={node.size}/>
+									</FormGroup>
+									<Button onClick={e=>this.updateSelected('nodes')}>update</Button>{' '}
+									<Button onClick={e=>this.deleteSelected('nodes')}>delete</Button>
+								</Form>
+							)
+							: ''
+						}
+						{ edge
+							?
+								<Form onSubmit={this.updateSelected}>
+									<hr />
+									<h5>
+										{ edge ? (<small>1 edge selected</small>) : ''}
+									</h5>
+									<Button onClick={e=>this.deleteSelected('edges')}>delete</Button>
+								</Form>
+							: ''
+						}
 					</div>
 				</div>
 			</div>

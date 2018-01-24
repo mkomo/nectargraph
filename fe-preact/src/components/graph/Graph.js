@@ -26,8 +26,11 @@ export default class Graph extends LuxComponent {
 TODO
 implement groups
 spruce up edge Data view - source, target, directionality, label
-multiselect
+multiselect, do not jump
 multi-line label with tspan
+animate pan on select
+animate zoom to selection/extent
+modal for bulk input
 x move all graph style out of css (for download and flexibility)
 x download JSON, download svg
 x toggle show background
@@ -46,6 +49,7 @@ nodes edges categories traversals adjacency reachability = nectar
 			keys: [],
 			edgesVisible: false,
 			backgroundVisible: false,
+			toolboxVisible: true,
 			background: {
 				//TODO make this editable
 				url: "/assets/char-map-base-layer.svg",
@@ -321,12 +325,6 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	redraw(sort=false) {
-		// Persist changes
-		// localStorage.setItem('model', JSON.stringify({
-		// 		nodes: model.nodes,
-		// 		edges: model.edges,
-		// 		transform: this.container.attr("transform")
-		// }, null, '\t'));
 
 		var bg = (this.state.background && this.state.background.bgid) ? document.getElementById(this.state.background.bgid) : null;
 		if (bg != null) {
@@ -589,12 +587,30 @@ nodes edges categories traversals adjacency reachability = nectar
 		// console.log('loaded', this.state);
 		/*
 
-		Controls
-			select/multiselect(shift)/add
-			zoom to extent
-			snap to hex/quad grid
-			spread evenly
-			undo last change
+when you click on the pane:
+	drag ()
+	add (ctrl)
+	draw selection box (shift)
+
+when you click on a node
+	select ()
+	add to selection (shift)
+	move ()
+	draw edge (ctrl)
+
+when you click on an edge
+	select ()
+	add to selection (shift)
+	bend ()
+
+pane:
+	click:
+	dblclick:
+	mousedown:
+	mousemove:
+	mouseup
+
+
 		Graph data
 			name
 			# nodes
@@ -605,24 +621,38 @@ nodes edges categories traversals adjacency reachability = nectar
 		return (
 			<div class={style.graph_container}>
 				<div id="graph"></div>
-				<div class={expanded ? style.graph_info + ' ' + style.graph_info_expanded : style.graph_info}>
+				<div class={expanded ? style.graph_menu + ' ' + style.graph_menu_expanded : style.graph_menu}>
 					<div class={style.graph_form}>
-						<h2>
-							<InlineInput
-								value={this.state.name}
-								onChange={this.update}
-								propName="name"
-								placeholder="(untitled)"
-								width="100%"
-								showAlways
-								/>
-						</h2>
-						<div class="small">
-							{this.state.nodes.filter(node => !node.deleted).length} nodes,&nbsp;
-							{this.state.edges.filter(edge => !edge.deleted).length} edges,&nbsp;0 groups
+						<div class={style.menu_minimal}>
+							<h2>
+								<InlineInput
+									value={this.state.name}
+									onChange={this.update}
+									propName="name"
+									placeholder="(untitled)"
+									width="100%"
+									showAlways
+									/>
+							</h2>
+							<div class="small">
+								{this.state.nodes.filter(node => !node.deleted).length} nodes,&nbsp;
+								{this.state.edges.filter(edge => !edge.deleted).length} edges,&nbsp;0 groups
+							</div>
+							<a onClick={ e=>this.handleToggle('toolboxVisible', !this.state.toolboxVisible) } class={style.menu_expand_button}>
+								{ this.state.toolboxVisible
+									? (<i class="fa fa-angle-double-up" aria-hidden="true"></i>)
+									: (<i class="fa fa-angle-double-down" aria-hidden="true"></i>)
+								}
+							</a>
 						</div>
-						<div>
+						<div class={style.menu_minimal + ' ' + style.toolbox + (this.state.toolboxVisible ? '' : (' ' + style.closed))}>
 							{/*
+								graph_menu
+									menu_raised_under (contrast color)
+										menu_raised
+											menu_title
+											menu_toolbox (expandable)
+									menu_item_editor
 							<h6>
 								zoom: {this.state.transform ? this.state.transform.k : ''}
 							</h6>
@@ -630,36 +660,87 @@ nodes edges categories traversals adjacency reachability = nectar
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</h6>
 							*/}
-							<hr />
-							<span class="btn-group" data-toggle="buttons">
-								<Label for="backgroundVisibleCheck" className='btn btn-primary btn-sm'>
-									<Input type="checkbox"
-										id="backgroundVisibleCheck"
-										checked={this.state.backgroundVisible}
-										onChange={ e=>this.handleToggle('backgroundVisible', e.target.checked) }/>{' '}
-									<i class={this.state.backgroundVisible ? 'fa fa-check-square' : 'fa fa-square'} aria-hidden="true"></i>
-									&nbsp;
-									bg
-								</Label>
-								&nbsp;
-								<Label for="edgesVisibleCheck" className='btn btn-primary btn-sm'>
-									<Input type="checkbox"
-										id="edgesVisibleCheck"
-										checked={this.state.edgesVisible}
-										onChange={ e=>this.handleToggle('edgesVisible', e.target.checked) }/>{' '}
-									<i class={this.state.edgesVisible ? 'fa fa-check-square' : 'fa fa-square'} aria-hidden="true"></i>
-									&nbsp;
-									e
-								</Label>
-							</span>
-							&nbsp;
-							<span class="btn-group">
-								<Button className='btn-sm' onClick={this.downloadGraphSvg}>
-									<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg</Button>
-								&nbsp;
-								<Button className='btn-sm' onClick={this.downloadGraphJson}>
-								<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> json</Button>
-							</span>
+							<h6>view</h6>
+							<div>
+								<span class={style.toolbox_grp}>
+									{/*zoom to extent, zoom to selection*/}
+									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+										<i class="fa fa-arrows-alt" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+										<i class="fa fa-search-plus" aria-hidden="true"></i>
+									</button>
+								</span>
+								<span class={style.toolbox_grp}>
+								</span>
+								<span class={style.toolbox_grp}>
+									{/*bg,groups,edges,nodes,labels*/}
+									<button class={style.icon + (this.state.backgroundVisible ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('backgroundVisible', !this.state.backgroundVisible) }>
+										<i class="fa fa-picture-o" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.groupsVisible ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('groupsVisible', !this.state.groupsVisible) }>
+										<i class="fa fa-object-ungroup" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.edgesVisible ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('edgesVisible', !this.state.edgesVisible) }>
+										<i class="fa fa-code-fork" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.nodesVisible ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('nodesVisible', !this.state.nodesVisible) }>
+										<i class="fa fa-dot-circle-o" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.labelsVisible ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('labelsVisible', !this.state.labelsVisible) }>
+										<i class="fa fa-font" aria-hidden="true"></i>
+									</button>
+								</span>
+							</div>
+							<h6>edit</h6>
+							<div>
+								<span class={style.toolbox_grp}>
+									{/*select/multiselect(shift)/add*/}
+									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+										<i class="fa fa-mouse-pointer" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+										<i class="fa fa-object-group" aria-hidden="true"></i>
+									</button>
+									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+										<i class="fa fa-plus" aria-hidden="true"></i>
+									</button>
+								</span>
+								<span class={style.toolbox_grp}>
+									{/*snap to hex,quad grid,spread*/}
+									<button class={style.icon}>
+										hx
+									</button>
+									<button class={style.icon}>
+										qd
+									</button>
+									<button class={style.icon}>
+										sp
+									</button>
+								</span>
+								<span class={style.toolbox_grp}>
+									{/*undo*/}
+									<button class={style.icon}>
+										<i class="fa fa-undo" aria-hidden="true"></i>
+									</button>
+								</span>
+							</div>
+							<h6>download</h6>
+							<div>
+								<span class={style.toolbox_grp}>
+									<button onClick={this.downloadGraphSvg}>
+										<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg
+									</button>
+									<button onClick={this.downloadGraphJson}>
+										<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> json
+									</button>
+								</span>
+							</div>
 						</div>
 					</div>
 					<div>

@@ -16,23 +16,22 @@ input#nodeCaption {
 svg:focus{
 	outline: none;
 }
-.graph_info {
+.graph_menu {
 	position: absolute;
 	padding: 0.5em;
 	top: 0;
 	left: 0;
 }
-.graph_info_expanded {
+.graph_menu_expanded {
 	background-color: #fff;
 	border-right: 1px solid #ddd;
 	height: 100%;
 }
 .graph_form {
 	width: 17em;
-	padding: 0.5em 1em;
 	background: #FFF;
-	border-radius: 0.25em;
-	box-shadow: 0 0 0.2em 0.1em rgba(80,80,80,.25);
+	box-shadow: 0 0 0.2em 0.2em rgba(80, 80, 80, 0.25);
+
 }
 .graph_form h2 {
 	margin: 0 -0.25em;
@@ -50,6 +49,74 @@ svg:focus{
 	height: 4.5em;
 }
 
+.menu_minimal {
+	padding: 0.5em 1em;
+	position: relative;
+}
+.menu_expand_button {
+	position: absolute;
+	bottom: 0;
+	right: 0.5em;
+}
+
+.toolbox {
+    padding: 0 0 0.5em 0;
+    border-top: 1px solid rgba(0,0,0,.1);
+    margin: 0 1em 0.5em 1em;
+	max-height: 220px;
+	transition-property: max-height;
+	transition-duration: .5s;
+	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+.toolbox.closed {
+	max-height: 0;
+	padding: 0;
+	border-top: none;
+	overflow-y: hidden;
+}
+.toolbox h6 {
+	margin-top: 0.3em;
+	margin-bottom: 0.2em;
+}
+
+.toolbox button {
+	background-color: #9fb8ad;
+	color: #fff;
+	padding: 3px 7px;
+	border: none;
+	border-right: 1px solid #aec5ba;
+}
+
+.toolbox button:hover {
+	cursor: pointer;
+	text-shadow: 0 0 0.2em #ffbf94;
+	box-shadow: inset 0px 0px 5px 3px #9bc5b3;
+}
+.toolbox button:focus {
+	outline: none;
+}
+.toolbox button.icon {
+	width: 2em;
+	padding-left: 0;
+	padding-right: 0;
+}
+.toolbox button.active {
+	background-color: #9bc5b3;
+	box-shadow: inset 0px 0px 5px 3px rgba(0, 0, 0, 0.125);
+}
+.toolbox_grp>button:first-child {
+	border-top-left-radius: 0.25em;
+	border-bottom-left-radius: 0.25em;
+}
+.toolbox_grp {
+	margin-right: 0.25em;
+
+}
+.toolbox_grp>button:last-child {
+	border-right: none;
+	border-top-right-radius: 0.25em;
+	border-bottom-right-radius: 0.25em;
+}
 
 /* SVG STUFF BEGIN -- include only interactive styles, anything else should be applied directly w/d3 for download */
 text.nodelabel {

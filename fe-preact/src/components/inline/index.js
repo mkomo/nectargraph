@@ -46,7 +46,7 @@ export default class InlineInput extends Component {
 	componentWillReceiveProps(nextProps) {
 		this.stateFromProps(nextProps);
 	}
-	setEditState(e) {
+	setEditState(event) {
 		event.preventDefault();
 		event.stopPropagation();
 		this.setState({inEdit : true, tempValue : this.state.value});

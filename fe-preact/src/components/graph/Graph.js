@@ -502,10 +502,13 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	download(dataStr, filename) {
+		console.log('download', filename);
 		var exportName = this.state.name;
 		var downloadAnchorNode = document.createElement('a');
 		downloadAnchorNode.setAttribute("href",     dataStr);
 		downloadAnchorNode.setAttribute("download", filename);
+		downloadAnchorNode.setAttribute("style", 'display: none');
+		document.body.append(downloadAnchorNode);
 		downloadAnchorNode.click();
 		downloadAnchorNode.remove();
 	}

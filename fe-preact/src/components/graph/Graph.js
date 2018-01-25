@@ -229,6 +229,7 @@ nodes edges categories traversals adjacency reachability = nectar
 			.on("mousemove", mousemove)
 			.on("mouseup", mouseup)
 			.on("mousedown", mousedown)
+			.on("mousein",()=>this.svg.node.focus())
 			.on("keydown", keydown)
 			.on("keyup", keyup)
 			.on("click", this.clickPane);
@@ -242,7 +243,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				if (that.mode() == MODE_SELECT_ADD) {
 					console.log('zoom.filtered for MODE_SELECT_ADD');
 					that.setState({
-						mousedown: d3.event
+						mousedownPixel: d3.mouse(that.container.node())
 					});
 					return false;
 				} else {
@@ -277,8 +278,6 @@ nodes edges categories traversals adjacency reachability = nectar
 		}
 		this.svg.call(zoom);
 
-		this.svg.node().focus();
-
 		function mousemove() {
 			// console.log(d3.event);
 			that.keyCheck();
@@ -291,10 +290,10 @@ nodes edges categories traversals adjacency reachability = nectar
 				that.state.dragged.x = m[0];
 				that.state.dragged.y = m[1];
 				that.redraw();
-			} else if (that.state.mousedown) {
+			} else if (that.state.mousedownPixel) {
 				if (that.mode() == MODE_SELECT_ADD) {
 					that.setState({
-						selectionEnd: d3.event
+						selectionEnd: d3.mouse(that.container.node())
 					})
 					that.redraw();
 				}
@@ -312,11 +311,13 @@ nodes edges categories traversals adjacency reachability = nectar
 					nodes: that.state.nodes
 				});
 			}
-			if (that.state.mousedown) {
-				updateObj.mousedown = null;
-				console.log('select all nodes between', that.state.mousedown, that.state.selectionEnd);
+			if (that.state.mousedownPixel) {
+				console.log('select all nodes between', that.state.mousedownPixel, that.state.selectionEnd);
+				updateObj.mousedownPixel = null;
+				updateObj.selectionEnd = null;
 			}
 			that.setState(updateObj);
+			that.redraw();
 		}
 
 		function mousedown() {
@@ -329,6 +330,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		}
 
 		function keydown() {
+			console.log('keydown');
 			that.keyCheck();
 
 			switch (d3.event.keyCode) {
@@ -341,11 +343,12 @@ nodes edges categories traversals adjacency reachability = nectar
 			}
 		}
 
-		this.redraw();
-
 		window.addEventListener("resize", this.redraw);
 		document.addEventListener('DOMContentLoaded', this.redraw, false);
 
+		this.redraw();
+
+		this.svg.node().focus();
 	}
 
 	keyCheck() {
@@ -391,6 +394,7 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	redraw(sort=false) {
+		console.log('redraw');
 
 		var bg = (this.state.background && this.state.background.bgid) ? document.getElementById(this.state.background.bgid) : null;
 		if (bg != null) {
@@ -414,6 +418,25 @@ nodes edges categories traversals adjacency reachability = nectar
 			.duration(1750)
 			.ease(d3.easeSin);
 
+		//selection
+		var selectionBox = this.container.selectAll('rect.selection')
+			.data((this.state.mousedownPixel && this.state.selectionEnd)
+				? [{start: this.state.mousedownPixel, end: this.state.selectionEnd}]
+				: []
+			);
+
+		selectionBox.exit().remove();
+		selectionBox.enter().append("rect")
+			.attr('class', 'selection')
+			.attr('stroke-dasharray',"5, 5")
+			.style('stroke', d=>d===that.state.selectedEdges ? '#ff7f0e' : '#444')
+			.style('stroke-width','1px')
+			.style('fill', '#ff7f0e44')
+		.merge(selectionBox)
+			.attr('x', d=>Math.min(d.start[0],d.end[0]))
+			.attr('y', d=>Math.min(d.start[1],d.end[1]))
+			.attr('width', d=>Math.abs(d.start[0]-d.end[0]))
+			.attr('height', d=>Math.abs(d.start[1]-d.end[1]));
 		//Regions
 
 		//Edges
@@ -438,8 +461,8 @@ nodes edges categories traversals adjacency reachability = nectar
 			.transition(t)
 				.style("opacity", 1)
 		.selection().merge(edge)
-			.style('stroke', d=>d===that.state.selectedEdges ? '#ff7f0e' : '#444')
-			.style('stroke-width','2.5px')
+			.style('stroke', d=>d===that.state.selectedEdges ? '#ff7f0e' : '#77777788')
+			.style('stroke-width','1.5px')
 			.attr("d", function(a) {
 				return line(that.store.line(a));
 			}).classed(style.selected, function(d) {
@@ -474,7 +497,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				return (d.size ? d.size : radius);
 			})
 			.style('stroke','#444')
-			.style('stroke-width','2.5px');
+			.style('stroke-width','1.5px');
 
 		const MIN_LABEL_SIZE = 6.4;
 		const LABEL_SIZE_FACTOR = 2;

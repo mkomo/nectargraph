@@ -21,6 +21,10 @@ import {
 
 var LuxComponent = Lux.Component.extend(Component);
 
+const MODE_SELECT = 'select';
+const MODE_SELECT_ADD = 'select_add';
+const MODE_ADD = 'add';
+
 export default class Graph extends LuxComponent {
 
 	/*
@@ -44,13 +48,16 @@ nodes edges categories traversals adjacency reachability = nectar
 		super(props);
 
 		this.state = {
+			mode: MODE_SELECT,
 			selectedNodes: null,
 			selectedEdges: null,
 			dragged: null,
 			keys: [],
-			edgesVisible: false,
+
+			edgesVisible: true,
 			backgroundVisible: false,
 			toolboxVisible: true,
+
 			background: {
 				//TODO make this editable
 				url: "/assets/char-map-base-layer.svg",
@@ -73,6 +80,8 @@ nodes edges categories traversals adjacency reachability = nectar
 		this.handleToggle = this.handleToggle.bind(this);
 		this.downloadGraphJson = this.downloadGraphJson.bind(this);
 		this.downloadGraphSvg = this.downloadGraphSvg.bind(this);
+		this.keyCheck = this.keyCheck.bind(this);
+		this.mouseCheck = this.mouseCheck.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -96,6 +105,15 @@ nodes edges categories traversals adjacency reachability = nectar
 	update(state) {
 		console.log(this, state);
 		this.store.setState(state);
+	}
+
+	mode() {
+		if (this.state.keys.includes('shift')) {
+			return this.state.mode === MODE_SELECT ? MODE_SELECT_ADD : MODE_SELECT;
+		} else if (this.state.keys.includes('ctrl')) {
+			return this.state.mode === MODE_SELECT ? MODE_ADD : MODE_SELECT;
+		}
+		return this.state.mode;
 	}
 
 	originate() {
@@ -195,11 +213,12 @@ nodes edges categories traversals adjacency reachability = nectar
 		d3.select("svg").remove();
 		if (svg) {
 			d3.select('#graph').html(svg);
-			console.log('downloaded svg');
+			console.log('loaded background svg');
 			this.svg = d3.select("svg")
 				.attr("id", 'graph_svg')
 			this.container = this.svg.select(this.state.background.containerSelector);
 		} else {
+			console.log('creating blank svg');
 			this.svg = d3.select("#graph").append("svg")
 				.attr("id", 'graph_svg')
 			this.container = this.svg.append('g');
@@ -209,79 +228,108 @@ nodes edges categories traversals adjacency reachability = nectar
 			.style('font-family','sans-serif')
 			.on("mousemove", mousemove)
 			.on("mouseup", mouseup)
+			.on("mousedown", mousedown)
 			.on("keydown", keydown)
 			.on("keyup", keyup)
 			.on("click", this.clickPane);
 
-		console.log('this.container', this.container);
-
 		// d3.select("#button_random").on("click", function(){
 		// });
 
-		function zoomed() {
-			var t = d3.event.transform;
-			that.container.attr("transform", t);
-			that.store.setState({
-				transform: t,
-				transformSvg: that.container.attr("transform")
-			});
-			that.redraw();
-		}
-
 		var zoom = d3.zoom()
 			.scaleExtent([0.2, 10])
-			.on("zoom", zoomed);
+			.filter(function() {
+				if (that.mode() == MODE_SELECT_ADD) {
+					console.log('zoom.filtered for MODE_SELECT_ADD');
+					that.setState({
+						mousedown: d3.event
+					});
+					return false;
+				} else {
+					return true;
+				}
+			})
+			.on("zoom", function() {
+				var t = d3.event.transform;
+				that.container.attr("transform", t);
+				that.setState({
+					transform: t,
+					transformSvg: that.container.attr("transform")
+				});
+				that.redraw();
+			})
+			.on("end", function() {
+				if (!Lux.eq(that.state.transform, that.store.state.transform) ||
+						!Lux.eq(that.state.transformSvg, that.store.state.transformSvg)) {
+					that.store.setState({
+						transform: that.state.transform,
+						transformSvg: that.state.transformSvg
+					});
+				}
+			});
 
 		if (this.state.transformSvg != null) {
 			//https://stackoverflow.com/questions/38224875/replacing-d3-transform-in-d3-v4/38230545
 			var transform = parseSvg(this.state.transformSvg);
 			this.container.attr("transform", this.state.transformSvg);
-			this.svg.call(zoom.transform, d3.zoomIdentity.translate(transform.translateX, transform.translateY).scale(transform.scaleX));
+			this.svg.call(zoom.transform,
+				d3.zoomIdentity.translate(transform.translateX, transform.translateY).scale(transform.scaleX));
 		}
 		this.svg.call(zoom);
 
 		this.svg.node().focus();
 
 		function mousemove() {
-			if (!that.state.dragged) return;
+			// console.log(d3.event);
+			that.keyCheck();
+			that.mouseCheck();
 
-			d3.event.preventDefault();
-			d3.event.stopPropagation();
-			var m = d3.mouse(that.container.node());
-			that.state.dragged.x = m[0];
-			that.state.dragged.y = m[1];
-			that.store.setState({
-				nodes: that.state.nodes
-			});
-			that.redraw();
+			if (that.state.dragged) {
+				d3.event.preventDefault();
+				d3.event.stopPropagation();
+				var m = d3.mouse(that.container.node());
+				that.state.dragged.x = m[0];
+				that.state.dragged.y = m[1];
+				that.redraw();
+			} else if (that.state.mousedown) {
+				if (that.mode() == MODE_SELECT_ADD) {
+					that.setState({
+						selectionEnd: d3.event
+					})
+					that.redraw();
+				}
+			}
 		}
 
 		function mouseup() {
-			if (!that.state.dragged) return;
-			mousemove();
-			that.setState({
-				dragged: null
-			});
+			that.keyCheck();
+			console.log('mouseup', d3.event);
+			var updateObj = {};
+			if (that.state.dragged) {
+				updateObj.dragged = null;
+				console.log('drag complete', that.state.dragged);
+				that.store.setState({
+					nodes: that.state.nodes
+				});
+			}
+			if (that.state.mousedown) {
+				updateObj.mousedown = null;
+				console.log('select all nodes between', that.state.mousedown, that.state.selectionEnd);
+			}
+			that.setState(updateObj);
+		}
+
+		function mousedown() {
+			console.debug('mousedown', d3.event);
 		}
 
 		function keyup() {
-			console.log('keyup', d3.event);
-			var i = that.state.keys.indexOf(d3.event.key);
-			if (i != -1) {
-				that.state.keys.splice(i, 1);
-				that.setState({
-					keys: that.state.keys
-				})
-			}
+			console.debug('keyup', d3.event);
+			that.keyCheck();
 		}
 
 		function keydown() {
-			if (! that.state.keys.includes(d3.event.key)) {
-				that.state.keys.push(d3.event.key);
-				that.setState({
-					keys: that.state.keys
-				})
-			}
+			that.keyCheck();
 
 			switch (d3.event.keyCode) {
 				case 8: // backspace
@@ -300,7 +348,24 @@ nodes edges categories traversals adjacency reachability = nectar
 
 	}
 
+	keyCheck() {
+		var o = {};
+		if (d3.event.shiftKey) o['shift'] = true;
+		if (d3.event.ctrlKey) o['ctrl'] = true;
+		if (d3.event.altKey) o['alt'] = true;
+		var keys =  Object.keys(o);
+		if (!Lux.eq(this.state.keys, keys)) {
+			this.setState({keys: keys});
+		}
+
+	}
+
+	mouseCheck() {
+		// console.log(d3.event);
+	}
+
 	onSelectNode(d) {
+		this.keyCheck();
 		d3.event.preventDefault();
 		d3.event.stopPropagation();
 		console.log(d3.event.type);
@@ -536,14 +601,16 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		if (this.state.selectedNodes && deleteNodes) {
 			this.state.selectedNodes.deleted = true;
-			this.setState({
-				selectedNodes: null
+			this.store.setState({
+				selectedNodes: null,
+				nodes: this.store.state.nodes
 			});
 		}
 		if (this.state.selectedEdges && deleteEdges) {
 			this.state.selectedEdges.deleted = true;
-			this.setState({
-				selectedEdges: null
+			this.store.setState({
+				selectedEdges: null,
+				nodes: this.store.state.nodes
 			});
 		}
 		if (deleteNodes || deleteEdges) {
@@ -641,7 +708,15 @@ pane:
 							</h2>
 							<div class="small">
 								{this.state.nodes.filter(node => !node.deleted).length} nodes,&nbsp;
-								{this.state.edges.filter(edge => !edge.deleted).length} edges,&nbsp;0 groups
+								{this.state.edges.filter(edge => this.store.line(edge)).length} edges,&nbsp;0 groups
+							</div>
+							{/*
+							<div class="small">
+								zoom: {this.state.transform ? this.state.transform.k : ''}
+							</div>
+							*/}
+							<div class="small">
+								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</div>
 							<a onClick={ e=>this.handleToggle('toolboxVisible', !this.state.toolboxVisible) } class={style.menu_expand_button}>
 								{ this.state.toolboxVisible
@@ -651,20 +726,7 @@ pane:
 							</a>
 						</div>
 						<div class={style.menu_minimal + ' ' + style.toolbox + (this.state.toolboxVisible ? '' : (' ' + style.closed))}>
-							{/*
-								graph_menu
-									menu_raised_under (contrast color)
-										menu_raised
-											menu_title
-											menu_toolbox (expandable)
-									menu_item_editor
-							<h6>
-								zoom: {this.state.transform ? this.state.transform.k : ''}
-							</h6>
-							<h6>
-								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
-							</h6>
-							*/}
+
 							<h6>view</h6>
 							<div>
 								<span class={style.toolbox_grp}>
@@ -705,14 +767,17 @@ pane:
 							<h6>edit</h6>
 							<div class={style.toolbox_row}>
 								<span class={style.toolbox_grp}>
-									{/*select/multiselect(shift)/add*/}
-									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+									{/*select/multiselect/add*/}
+									<button class={style.icon + (this.mode() === MODE_SELECT ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('mode', MODE_SELECT) }>
 										<i class="fa fa-mouse-pointer" aria-hidden="true"></i>
 									</button>
-									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+									<button class={style.icon + (this.mode() === MODE_SELECT_ADD ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('mode', MODE_SELECT_ADD) }>
 										<i class="fa fa-object-group" aria-hidden="true"></i>
 									</button>
-									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
+									<button class={style.icon + (this.mode() === MODE_ADD ? ' ' + style.active : '')}
+										onClick={ e=>this.handleToggle('mode', MODE_ADD) }>
 										<i class="fa fa-plus" aria-hidden="true"></i>
 									</button>
 								</span>

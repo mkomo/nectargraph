@@ -227,6 +227,8 @@ var Lux = {
 		return __cache.list(Proto, filter);
 	},
 
+	eq : luxEq,
+
 	guid: uuidv4,
 
 	Component : LuxComponent,
@@ -307,6 +309,37 @@ class LuxMemStore extends LuxAbstractStore {
 
 function luxLocalStorageName() {
 	return '__lux_store_storynotes';
+}
+
+function luxEq(a, b) {
+	if (typeof a === 'object' && typeof b === 'object' && a !== null && b !== null) {
+		// a and b are both non-null objects
+		if (Array.isArray(a) && Array.isArray(b)) {
+			if (a.length !== b.length) {
+				return false;
+			}
+		} else if (!Array.isArray(a) && !Array.isArray(b)) {
+			if (Object.getOwnPropertyNames(a).length !== Object.getOwnPropertyNames(b).length) {
+				return false;
+			}
+		} else {
+			// a is array and b is object or vice versa
+			return false;
+		}
+
+		// a and b are both the same type (obj or arr) AND the same length
+		var keysA = Object.getOwnPropertyNames(a);
+		for (var i = 0; i < keysA.length; i++ ) {
+			var key = keysA[i];
+			if (!(key in b) || !luxEq(a[key], b[key])) {
+				return false;
+			}
+		}
+		return true;
+	} else {
+		// undefined or string, number, boolean
+		return a === b
+	}
 }
 
 function removeCircular(o, depth = 0, maxDepth = 2, filter = null) {
@@ -445,3 +478,6 @@ export {
 	LuxLocalStore,
 	LuxRestStore
 }
+
+//TODO remove
+window.Lux = Lux;

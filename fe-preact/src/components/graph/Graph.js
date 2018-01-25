@@ -8,6 +8,7 @@ import { parseSvg } from "d3-interpolate/src/transform/parse";
 import style from './style.less';
 import { Form, FormGroup, Label, Input, Button, FormText } from 'reactstrap';
 import InlineInput from '../inline';
+import Tooltip from '../tooltip/Tooltip';
 
 import { Lux } from '../../stores/LuxStore'
 import {
@@ -508,6 +509,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		downloadAnchorNode.setAttribute("href",     dataStr);
 		downloadAnchorNode.setAttribute("download", filename);
 		downloadAnchorNode.setAttribute("style", 'display: none');
+		//it appears that in FF, you must append an element to the dom tree before click() will work
 		document.body.append(downloadAnchorNode);
 		downloadAnchorNode.click();
 		downloadAnchorNode.remove();
@@ -701,7 +703,7 @@ pane:
 								</span>
 							</div>
 							<h6>edit</h6>
-							<div>
+							<div class={style.toolbox_row}>
 								<span class={style.toolbox_grp}>
 									{/*select/multiselect(shift)/add*/}
 									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
@@ -716,21 +718,29 @@ pane:
 								</span>
 								<span class={style.toolbox_grp}>
 									{/*snap to hex,quad grid,spread*/}
-									<button class={style.icon}>
-										hx
-									</button>
-									<button class={style.icon}>
-										qd
-									</button>
-									<button class={style.icon}>
-										sp
-									</button>
+									<Tooltip text="snap nodes to hex grid">
+										<button class={style.icon}>
+											hx
+										</button>
+									</Tooltip>
+									<Tooltip text="snap nodes to quad grid">
+										<button class={style.icon}>
+											qd
+										</button>
+									</Tooltip>
+									<Tooltip text="spread selected nodes">
+										<button class={style.icon}>
+											sp
+										</button>
+									</Tooltip>
 								</span>
 								<span class={style.toolbox_grp}>
 									{/*undo*/}
-									<button class={style.icon}>
-										<i class="fa fa-undo" aria-hidden="true"></i>
-									</button>
+									<Tooltip text="undo last action" position="bottom">
+										<button class={style.icon}>
+											<i class="fa fa-undo" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
 								</span>
 							</div>
 							<h6>download</h6>

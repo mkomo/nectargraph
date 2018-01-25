@@ -60,18 +60,18 @@ svg:focus{
 }
 
 .toolbox {
-    padding: 0 0 0.5em 0;
+    padding: 0 0 0.75em 0;
     border-top: 1px solid rgba(0,0,0,.1);
     margin: 0 1em 0.5em 1em;
 	max-height: 220px;
-	transition-property: max-height;
+	transition-property: all;
 	transition-duration: .5s;
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
 }
 .toolbox.closed {
 	max-height: 0;
 	padding: 0;
-	border-top: none;
+	border-top: 1px solid rgba(0,0,0,0);
 	overflow-y: hidden;
 }
 .toolbox h6 {
@@ -104,7 +104,14 @@ svg:focus{
 	background-color: #9bc5b3;
 	box-shadow: inset 0px 0px 5px 3px rgba(0, 0, 0, 0.125);
 }
+.toolbox_row :last-child {
+	margin-right: 0!important;
+}
 .toolbox_grp>button:first-child {
+	border-top-left-radius: 0.25em;
+	border-bottom-left-radius: 0.25em;
+}
+.toolbox_grp :first-child button {
 	border-top-left-radius: 0.25em;
 	border-bottom-left-radius: 0.25em;
 }
@@ -113,6 +120,11 @@ svg:focus{
 
 }
 .toolbox_grp>button:last-child {
+	border-right: none;
+	border-top-right-radius: 0.25em;
+	border-bottom-right-radius: 0.25em;
+}
+.toolbox_grp :last-child>button {
 	border-right: none;
 	border-top-right-radius: 0.25em;
 	border-bottom-right-radius: 0.25em;

@@ -54,8 +54,12 @@ nodes edges categories traversals adjacency reachability = nectar
 			dragged: null,
 			keys: [],
 
+			labelsVisible: true,
+			nodesVisible: true,
 			edgesVisible: true,
+			groupsVisible: false,
 			backgroundVisible: false,
+
 			toolboxVisible: true,
 
 			background: {
@@ -315,7 +319,9 @@ nodes edges categories traversals adjacency reachability = nectar
 				});
 			}
 			if (that.state.mousedownPixel && that.state.selectionEnd) {
-				updateObj.selectedNodes = that.nodes(that.state.mousedownPixel, that.state.selectionEnd);
+				var s = that.nodes(that.state.mousedownPixel, that.state.selectionEnd);
+
+				updateObj.selectedNodes = s.concat(that.mode() == MODE_SELECT_ADD ? that.state.selectedNodes : []);
 				updateObj.mousedownPixel = null;
 				updateObj.selectionEnd = null;
 			}
@@ -379,7 +385,14 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	mouseCheck() {
-		// console.log(d3.event);
+		if (d3.event.buttons !== 1 && this.state.mousedownPixel) {
+			console.log('removing mousedownPixel');
+			this.setState({
+				mousedownPixel: null,
+				selectionEnd: null
+			});
+			this.redraw();
+		}
 	}
 
 	onSelectNode(d) {
@@ -489,7 +502,7 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		//Nodes
 		var circle = this.container.selectAll("circle")
-			.data(this.state.nodes.filter(node => !node.deleted));
+			.data(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
 		var radius = 8.5
 
 		circle.exit().remove();
@@ -525,8 +538,10 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		//Labels
 		var nodelabels = this.container.selectAll('.' + style.nodelabel)
-			.data(this.state.nodes.filter(node => !node.deleted
-				&& factor * (node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT) > MIN_LABEL_SIZE));
+			.data(this.state.nodes.filter(node => {
+				var fontSize = node.size ? node.size * LABEL_SIZE_FACTOR : LABEL_SIZE_DEFAULT;
+				// console.log(fontSize * factor);
+				return this.state.labelsVisible && !node.deleted && factor * fontSize > MIN_LABEL_SIZE }));
 
 		nodelabels.exit().remove();
 		nodelabels.enter().append("text")
@@ -587,6 +602,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		} else {
 			console.debug('not sorting');
 		}
+		nodelabels.raise();
 	}
 
 	downloadGraphJson() {
@@ -700,7 +716,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		}
 		var node = this.state.selectedNodes;
 		var edge = this.state.selectedEdges;
-		var expanded = node || edge;
+		var expanded = (node && node.length > 0) || edge;
 		// console.log('loaded', this.state);
 		/*
 
@@ -759,10 +775,10 @@ pane:
 							<div class="small">
 								zoom: {this.state.transform ? this.state.transform.k : ''}
 							</div>
-							*/}
 							<div class="small">
 								keys: { this.state.keys ? this.state.keys.join(',') : (<i>none</i>)}
 							</div>
+							*/}
 							<a onClick={ e=>this.handleToggle('toolboxVisible', !this.state.toolboxVisible) } class={style.menu_expand_button}>
 								{ this.state.toolboxVisible
 									? (<i class="fa fa-angle-double-up" aria-hidden="true"></i>)
@@ -787,44 +803,60 @@ pane:
 								</span>
 								<span class={style.toolbox_grp}>
 									{/*bg,groups,edges,nodes,labels*/}
-									<button class={style.icon + (this.state.backgroundVisible ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('backgroundVisible', !this.state.backgroundVisible) }>
-										<i class="fa fa-picture-o" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.state.groupsVisible ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('groupsVisible', !this.state.groupsVisible) }>
-										<i class="fa fa-object-ungroup" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.state.edgesVisible ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('edgesVisible', !this.state.edgesVisible) }>
-										<i class="fa fa-code-fork" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.state.nodesVisible ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('nodesVisible', !this.state.nodesVisible) }>
-										<i class="fa fa-dot-circle-o" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.state.labelsVisible ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('labelsVisible', !this.state.labelsVisible) }>
-										<i class="fa fa-font" aria-hidden="true"></i>
-									</button>
+									<Tooltip text="toggle background image">
+										<button class={style.icon + (this.state.backgroundVisible ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('backgroundVisible', !this.state.backgroundVisible) }>
+											<i class="fa fa-picture-o" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="toggle groups">
+										<button class={style.icon + (this.state.groupsVisible ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('groupsVisible', !this.state.groupsVisible) }>
+											<i class="fa fa-object-ungroup" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="toggle edges">
+										<button class={style.icon + (this.state.edgesVisible ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('edgesVisible', !this.state.edgesVisible) }>
+											<i class="fa fa-code-fork" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="toggle nodes">
+										<button class={style.icon + (this.state.nodesVisible ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('nodesVisible', !this.state.nodesVisible) }>
+											<i class="fa fa-dot-circle-o" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="toggle labels">
+										<button class={style.icon + (this.state.labelsVisible ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('labelsVisible', !this.state.labelsVisible) }>
+											<i class="fa fa-font" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
 								</span>
 							</div>
 							<h6>edit</h6>
 							<div class={style.toolbox_row}>
 								<span class={style.toolbox_grp}>
 									{/*select/multiselect/add*/}
-									<button class={style.icon + (this.mode() === MODE_SELECT ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('mode', MODE_SELECT) }>
-										<i class="fa fa-mouse-pointer" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.mode() === MODE_SELECT_ADD ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('mode', MODE_SELECT_ADD) }>
-										<i class="fa fa-object-group" aria-hidden="true"></i>
-									</button>
-									<button class={style.icon + (this.mode() === MODE_ADD ? ' ' + style.active : '')}
-										onClick={ e=>this.handleToggle('mode', MODE_ADD) }>
-										<i class="fa fa-plus" aria-hidden="true"></i>
-									</button>
+									<Tooltip text="select nodes and edges">
+										<button class={style.icon + (this.mode() === MODE_SELECT ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('mode', MODE_SELECT) }>
+											<i class="fa fa-mouse-pointer" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="add to selelection (shift)">
+										<button class={style.icon + (this.mode() === MODE_SELECT_ADD ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('mode', MODE_SELECT_ADD) }>
+											<i class="fa fa-object-group" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
+									<Tooltip text="insert mode (ctrl)">
+										<button class={style.icon + (this.mode() === MODE_ADD ? ' ' + style.active : '')}
+											onClick={ e=>this.handleToggle('mode', MODE_ADD) }>
+											<i class="fa fa-plus" aria-hidden="true"></i>
+										</button>
+									</Tooltip>
 								</span>
 								<span class={style.toolbox_grp}>
 									{/*snap to hex,quad grid,spread*/}
@@ -867,12 +899,12 @@ pane:
 						</div>
 					</div>
 					<div>
-						{ node
+						{ node && node.length > 0
 							? (
 								<Form onSubmit={e=>{e.preventDefault();this.updateSelected()}}>
 									<hr />
 									<h5>
-										{ node ? (<small>1 node selected</small>) : ''}
+										{node.length + (node.length > 1 ? ' nodes' : ' node') + ' selected'}
 									</h5>
 									<FormGroup>
 										<Label for="nodeCaption">caption</Label>

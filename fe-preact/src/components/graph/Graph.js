@@ -49,7 +49,7 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		this.state = {
 			mode: MODE_SELECT,
-			selectedNodes: null,
+			selectedNodes: [],
 			selectedEdges: null,
 			dragged: null,
 			keys: [],
@@ -82,6 +82,8 @@ nodes edges categories traversals adjacency reachability = nectar
 		this.downloadGraphSvg = this.downloadGraphSvg.bind(this);
 		this.keyCheck = this.keyCheck.bind(this);
 		this.mouseCheck = this.mouseCheck.bind(this);
+		this.nodes = this.nodes.bind(this);
+
 	}
 
 	componentWillReceiveProps(nextProps, nextState) {
@@ -109,9 +111,9 @@ nodes edges categories traversals adjacency reachability = nectar
 
 	mode() {
 		if (this.state.keys.includes('shift')) {
-			return this.state.mode === MODE_SELECT ? MODE_SELECT_ADD : MODE_SELECT;
+			return this.state.mode === MODE_SELECT_ADD ? MODE_SELECT : MODE_SELECT_ADD;
 		} else if (this.state.keys.includes('ctrl')) {
-			return this.state.mode === MODE_SELECT ? MODE_ADD : MODE_SELECT;
+			return this.state.mode === MODE_ADD ? MODE_SELECT : MODE_ADD;
 		}
 		return this.state.mode;
 	}
@@ -180,10 +182,10 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	clickPane() {
-		if (!d3.event.ctrlKey) {
+		if (this.mode() !== MODE_ADD) {
 			if (this.state.selectedNodes || this.state.selectedEdges || this.state.dragged) {
 				this.setState({
-					selectedNodes: null,
+					selectedNodes: [],
 					selectedEdges: null,
 					dragged: null,
 				});
@@ -196,7 +198,7 @@ nodes edges categories traversals adjacency reachability = nectar
 
 			this.state.nodes.push(node);
 			this.setState({
-				selectedNodes: node,
+				selectedNodes: [node],
 				selectedEdges: null,
 				dragged: null,
 			});
@@ -240,8 +242,9 @@ nodes edges categories traversals adjacency reachability = nectar
 		var zoom = d3.zoom()
 			.scaleExtent([0.2, 10])
 			.filter(function() {
-				if (that.mode() == MODE_SELECT_ADD) {
-					console.log('zoom.filtered for MODE_SELECT_ADD');
+				that.keyCheck();
+				if (that.mode() == MODE_SELECT_ADD && d3.event.type !== 'wheel') {
+					console.log('zoom.filtered for MODE_SELECT_ADD', d3.event);
 					that.setState({
 						mousedownPixel: d3.mouse(that.container.node())
 					});
@@ -311,8 +314,8 @@ nodes edges categories traversals adjacency reachability = nectar
 					nodes: that.state.nodes
 				});
 			}
-			if (that.state.mousedownPixel) {
-				console.log('select all nodes between', that.state.mousedownPixel, that.state.selectionEnd);
+			if (that.state.mousedownPixel && that.state.selectionEnd) {
+				updateObj.selectedNodes = that.nodes(that.state.mousedownPixel, that.state.selectionEnd);
 				updateObj.mousedownPixel = null;
 				updateObj.selectionEnd = null;
 			}
@@ -351,6 +354,18 @@ nodes edges categories traversals adjacency reachability = nectar
 		this.svg.node().focus();
 	}
 
+	nodes(c1, c2) {
+		// establish bounding box
+		var min = [Math.min(c1[0],c2[0]),
+				Math.min(c1[1],c2[1])];
+		var max = [Math.max(c1[0],c2[0]),
+				Math.max(c1[1],c2[1])];
+		// find nodes in bounding box
+		return this.state.nodes.filter(n=> !n.deleted &&
+			(n.x >= min[0] && n.x <=max[0]) &&
+			(n.y >= min[1] && n.y <=max[1]));
+	}
+
 	keyCheck() {
 		var o = {};
 		if (d3.event.shiftKey) o['shift'] = true;
@@ -372,10 +387,11 @@ nodes edges categories traversals adjacency reachability = nectar
 		d3.event.preventDefault();
 		d3.event.stopPropagation();
 		console.log(d3.event.type);
-		if (d3.event.ctrlKey && this.state.selectedNodes != null
-				&& this.state.selectedNodes !== d) {
+		if (this.mode() == MODE_ADD && this.state.selectedNodes != null
+				&& this.state.selectedNodes.length == 1
+				&& !this.state.selectedNodes.includes(d)) {
 			if (d3.event.type == 'mousedown') {
-				var e = new Edge(this.store, this.state.selectedNodes, d);
+				var e = new Edge(this.store, this.state.selectedNodes[0], d);
 				console.log('new edge', e, d3.event.type);
 				this.state.edges.push(e);
 				this.store.setState({
@@ -384,9 +400,11 @@ nodes edges categories traversals adjacency reachability = nectar
 				this.redraw(true);
 			}
 		} else {
+			this.state.selectedNodes = (this.state.selectedNodes && this.mode() == MODE_SELECT_ADD ? this.state.selectedNodes : []);
+			this.state.selectedNodes.push(d);
 			this.setState({
-				selectedNodes: d,
-				selectedEdges: d3.event.shiftKey ? this.state.selectedEdges : null,
+				selectedNodes: this.state.selectedNodes,
+				selectedEdges: this.mode() == MODE_SELECT_ADD ? this.state.selectedEdges : null,
 				dragged: d3.event.type == "mousedown" ? d : null
 			});
 			this.redraw();
@@ -452,7 +470,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				d3.event.stopPropagation();
 				that.setState({
 					selectedEdges: d,
-					selectedNodes: d3.event.shiftKey ? that.state.selectedNodes : null,
+					selectedNodes: that.mode() == MODE_SELECT_ADD ? that.state.selectedNodes : [],
 					dragged: null
 				});
 				that.redraw(true);
@@ -484,9 +502,9 @@ nodes edges categories traversals adjacency reachability = nectar
 				.style("opacity", 1)
 		.selection().merge(circle)
 			.classed(style.selected, function(d) {
-				return d === that.state.selectedNodes;
+				return that.state.selectedNodes.includes(d);
 			})
-			.style('fill', d=>d===that.state.selectedNodes ? '#ff7f0e' : 'rgba(255,255,255,1.0)')
+			.style('fill', d=>that.state.selectedNodes.includes(d) ? '#ff7f0e' : 'rgba(255,255,255,1.0)')
 			.attr("cx", function(d) {
 				return d.x;
 			})
@@ -604,12 +622,16 @@ nodes edges categories traversals adjacency reachability = nectar
 	}
 
 	updateSelected(type = null){
-		var deleteNodes = type == null || type == 'nodes';
-		var deleteEdges = type == null || type == 'edges';
+		var updateNodes = type == null || type == 'nodes';
+		var updateNodes = type == null || type == 'edges';
 		if (this.state.selectedNodes) {
-			this.state.selectedNodes.name = document.getElementById("nodeCaption").value;
+			var cap = document.getElementById("nodeCaption").value;
 			var size = document.getElementById("nodeSize").value;
-			this.state.selectedNodes.size = size.length == 0 ? null : parseFloat(size);
+			size = size.length == 0 ? null : parseFloat(size);
+			this.state.selectedNodes.forEach(n=>{
+				if (cap.length != 0) n.name = cap;
+				if (size !== null && !isNaN(size)) n.size = size;
+			});
 			this.store.setState({
 				nodes: this.state.nodes
 			});
@@ -623,9 +645,9 @@ nodes edges categories traversals adjacency reachability = nectar
 		var deleteEdges = type == null || type == 'edges';
 
 		if (this.state.selectedNodes && deleteNodes) {
-			this.state.selectedNodes.deleted = true;
+			this.state.selectedNodes.forEach(n=>n.deleted = true);
 			this.store.setState({
-				selectedNodes: null,
+				selectedNodes: [],
 				nodes: this.store.state.nodes
 			});
 		}

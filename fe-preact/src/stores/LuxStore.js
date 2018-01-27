@@ -342,8 +342,9 @@ function luxEq(a, b) {
 	}
 }
 
-function removeCircular(o, depth = 0, maxDepth = 2, filter = null) {
+function removeCircular(o, depth = 0, maxDepth = 2) {
 	if (typeof o === 'object') {
+		var filter = null;
 		if (o === null || typeof o === 'undefined') {
 			return o;
 		} else if (o.constructor.prototype instanceof LuxAbstractStore) {
@@ -360,11 +361,12 @@ function removeCircular(o, depth = 0, maxDepth = 2, filter = null) {
 		var output = Array.isArray(o) ? [] : {};
 		for (var key in o) {
 			if (!filter || filter.includes(key)) {
-				output[key] = removeCircular(o[key], depth + 1);
+				output[key] = removeCircular(o[key], depth + 1, maxDepth);
 			}
 		}
 		return output;
 	} else {
+		// is value, not reference
 		return o;
 	}
 }

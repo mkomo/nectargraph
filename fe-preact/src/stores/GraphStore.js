@@ -75,6 +75,11 @@ class GraphStore extends LuxLocalStore {
 			: null
 	}
 
+	copy() {
+		var c = super.copy(['guid']);
+		c.setState({ name : "Copy of " + c.state.name});
+	}
+
 	delete() {
 		console.log('onDeleteGraph');
 		super.delete();

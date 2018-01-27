@@ -137,10 +137,38 @@ function createKeys(obj, kfs) {
 	return kfs.map(f=>f(obj)).filter(k=>k!==undefined);
 }
 
+function luxCopy(store, filterOut = []) {
+	// create copy of original with references to other Lux Stores
+	var copy = Lux.removeCircular(store);
+	// create a new instance of the store (registers it with cache)
+	var fresh = Lux.get(store.constructor, {});
+	// replace all references to itself with references to the new object
+	luxCacheEmboss(copy,{[store.constructor.name]:{[copy[LUX_GUID_KEY]]:fresh}});
+	// replace all references based on cache
+	luxCacheEmboss(copy,__cache);
+	// remove all fields that should not be copied from the original to the copy.
+	filterOut.forEach(key=>{
+		if (key in copy.state){
+			delete copy.state[key];
+		}
+	});
+	fresh.setState(copy.state);
+	return fresh;
+}
+
+function luxUndo(obj) {
+	throw new Error('not yet implemented');
+}
+
+function luxRedo(obj) {
+	throw new Error('not yet implemented');
+}
+
 function luxDelete(Proto, props) {
-	//TODO cascade
+	//TODO cascade? or handle this in the overriden delete method
 	return __cache.delete(Proto, props);
 }
+
 
 function luxInit(ProtoOrArray, arr=null){
 	if (Array.isArray(ProtoOrArray)) {
@@ -227,13 +255,13 @@ var Lux = {
 		return __cache.list(Proto, filter);
 	},
 
-	eq : luxEq,
-
-	guid: uuidv4,
-
 	Component : LuxComponent,
 
 	init: luxInit,
+
+	eq : luxEq,
+
+	guid: uuidv4,
 
 	removeCircular: removeCircular
 };
@@ -283,6 +311,10 @@ class LuxAbstractStore {
 	delete() {
 		//TODO cascade delete, possibly with a function on the object like actions
 		return luxDelete(this.constructor, this);
+	}
+
+	copy(keysToIgnore=[]) {
+		return luxCopy(this, keysToIgnore);
 	}
 
 	_persist() {

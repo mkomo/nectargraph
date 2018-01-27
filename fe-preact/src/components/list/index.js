@@ -33,8 +33,8 @@ export default class List extends Component {
 		});
 	}
 
-	fetchItems(obj) {
-		return Lux.list(obj.type, obj.filter);
+	fetchItems(stateObj) {
+		return Lux.list(stateObj.type, stateObj.filter);
 	}
 
 	handleItemClick(item) {
@@ -75,7 +75,10 @@ export default class List extends Component {
 								: ''
 							}
 								<Button className={style.list_entry_action} color="link"
-										onClick={e=>{console.log('clone',e)}}>
+										onClick={e=>{
+											items[key].copy();
+											this.setState({items : this.fetchItems(this.state)})
+										}}>
 									<i class="fa fa-clone" aria-hidden="true"></i>
 								</Button>
 						</div>)

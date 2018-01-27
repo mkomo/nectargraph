@@ -31,12 +31,12 @@ export default class Header extends Component {
 	render() {
 		return (
 				<Navbar dark expand="xs">
-					<NavbarBrand className={style.storynotes_title} href="/">storynotes</NavbarBrand>
+					<NavbarBrand className={style.navbar_title} href="/">nectarGRAPH</NavbarBrand>
 					<NavbarToggler onClick={this.toggle}/>
 					<Collapse isOpen={this.state.isOpen} navbar>
 						<Nav className="ml-auto" navbar>
 							<NavItem>
-								<Link href="/graphs" className="nav-link">graphs</Link>
+								<Link href="/graphs" className="nav-link">my graphs</Link>
 							</NavItem>
 						</Nav>
 					</Collapse>

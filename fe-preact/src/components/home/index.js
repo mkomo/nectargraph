@@ -9,45 +9,23 @@ export default class Home extends Component {
 		super(props);
 	}
 
-	// gets called when this route is navigated to
-	componentDidMount() {
-	}
-
-	// gets called just before navigating away from the route
-	componentWillUnmount() {
-	}
-
 	render() {
 		return (
 			<section class="home">
 			  <Jumbotron>
-				<h1 className="display-3">
-					Timers, ready!
+				<h1 class="display-3">
+					Connections Matter.
 				</h1>
-				<p className="lead">
-					Lapper is a tool for recording splits for athletes.
-					Use lapper to plan meets and workouts, record splits for all
-					your athletes, and keep track of progress over the course of the season.</p>
-				<hr className="my-2" />
-				<p>{/*<b><a href="#">Log in</a></b> to share your events or */} 
-					Events and athletes are stored locally so you can <i>get started right away</i>!</p>
-				<p className="lead">
-				  <Link className="btn btn-primary" href="/event">new {/*standalone*/} event</Link>&nbsp;
-  				  {/*<Link className="btn btn-primary" href="/meet">new meet</Link>*/}
+				<p class="lead">
+					nectarGRAPH is a tool for creating graphs and visualizing connections.</p>
+				<hr class="my-2" />
+				<p>{/*<b><a href="#">Log in</a></b> to share your events or */}
+					Graphs are stored locally so you can come back to view or edit the graphs you create <i>anytime</i>!</p>
+				<p class="lead">
+				  <Link className="btn btn-primary" href="/graph">new graph</Link>&nbsp;
 				</p>
 			  </Jumbotron>
 			</section>
 		);
 	}
-
-	/*homepage
-
-	LAPPER
-
-	Lapper is a tool for recording splits for athletes. Use lapper to plan meets and workouts, keep track of splits for all your athletes, and
-	/create new meet
-	active/upcoming meets/event
-	browse meets/events
-	browse Athletes
-	*/
 }

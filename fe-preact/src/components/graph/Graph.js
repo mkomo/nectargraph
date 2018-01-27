@@ -702,7 +702,6 @@ nodes edges categories traversals adjacency reachability = nectar
 			propName="name"
 			placeholder={this.state.guid.substring(0,8)}
 			width="10em"
-			showAlways
 			/>
 	</Link></span>
 </div>

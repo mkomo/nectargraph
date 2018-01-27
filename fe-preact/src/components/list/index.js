@@ -50,7 +50,7 @@ export default class List extends Component {
 		var items = this.state.items;
 		console.debug('retrieved list of items:', items);
 		var views = [];
-		var itemStyle = style.list_entry + (this.state.onClickItem ? (' ' + style.list_entry_clickable) : '');
+		var itemStyle = style.list_entry + ' ' + style.hoverable + (this.state.onClickItem ? (' ' + style.list_entry_clickable) : '');
 		for (let key in items) {
 			var obj = {};
 			obj[this.state.type.name] = items[key];
@@ -61,16 +61,24 @@ export default class List extends Component {
 			views.push((
 				<div class={itemStyle} onClick={e=>this.handleItemClick(items[key])} key={key}>
 					{
-						this.state.deleteAction && !this.state.noActions
-						? (<div class="pull-right">
-								<Button className={style.list_entry_action} color="link"
+						(this.state.deleteAction || this.state.copyAction) && !this.state.noActions
+						? (<div class={style.tool_right}>
+							{
+								this.state.deleteAction
+								? <Button className={style.list_entry_action} color="link"
 										onClick={e=>{
 											items[key].delete();
 											this.setState({items : this.fetchItems(this.state)})
 										}}>
 									<i class="fa fa-trash" aria-hidden="true"></i>
 								</Button>
-							</div>)
+								: ''
+							}
+								<Button className={style.list_entry_action} color="link"
+										onClick={e=>{console.log('clone',e)}}>
+									<i class="fa fa-clone" aria-hidden="true"></i>
+								</Button>
+						</div>)
 						: ''
 					}
 					{ h(this.state.view, obj) }

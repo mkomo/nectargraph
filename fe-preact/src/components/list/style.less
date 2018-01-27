@@ -1,6 +1,7 @@
 @import '~style/helpers';
 
 .list {
+	margin-top: 1em;
 	padding: 1em;
 	min-height: 100%;
 	width: 100%;
@@ -20,6 +21,7 @@
 	padding: 0.5em 0.5em 0.5em 1em;
 	margin-bottom: 0.7em;
 	background-color: #9fb8ad40;
+	position: relative;
 }
 .icon_container {
 	display: inline-block;
@@ -32,9 +34,10 @@
 }
 .list_entry_action:hover {
 	color: #2e5057;
+	cursor: pointer;
 }
 .list_entry:hover .list_entry_action {
-	display: block;
+	display: inline-block;
 }
 .list_entry_elt {
 	font-size: 1.5em;
@@ -47,4 +50,8 @@
 }
 .list_entry_clickable:hover {
 	cursor: pointer;
+}
+.tool_right {
+	position: absolute;
+	right: 0.5em;
 }

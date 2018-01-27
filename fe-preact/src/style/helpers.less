@@ -28,12 +28,25 @@ td.user_link_td {
 	padding-left: .4em;
 	display: inline-block;
 }
-
-.text_action_show, tr:hover .text_action {
+.text_action_button {
+	text-align: center;
+	white-space: nowrap;
+	vertical-align: middle;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	border: 1px solid transparent;
+	padding: .375rem .75rem;
+	font-size: 1rem;
+	line-height: 1.5;
+	color: #2e5057c0;
+	background: transparent;
+}
+.text_action_button:hover {
+	color: #2e5057;
+}
+.text_action_show, .hoverable:hover button {
 	visibility: visible;
 	cursor: pointer;
-}
-
-.text_action_show:hover,.text_action:hover {
-	color: #fc7!important;
 }

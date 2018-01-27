@@ -95,7 +95,7 @@ export default class InlineInput extends Component {
 	}
 
 	renderValue() {
-		var iconClass = style.text_action + " fa fa-pencil";
+		var iconClass = style.text_action + ' ' + style.text_action_button;
 		iconClass += (this.state.showAlways) ? (" " + style.text_action_show) : "";
 		return (
 			<span class={style.editable}>
@@ -103,7 +103,7 @@ export default class InlineInput extends Component {
 					{this.valueWithPlaceholder()}
 				</span>
 				{ !this.state.disabled
-					? <i onClick={this.setEditState} class={iconClass} aria-hidden="true"></i>
+					? <button class={iconClass} onClick={this.setEditState}><i class="fa fa-pencil" aria-hidden="true"></i></button>
 					: ''
 				}
 			</span>
@@ -121,7 +121,7 @@ export default class InlineInput extends Component {
 					onKeyUp={this.handleKeyUp}
 
 					style={this.state.width != null ? 'width:' + this.state.width : ''}
-					 />
+				/>
 			</form>
 		);
 	}

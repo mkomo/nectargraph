@@ -5,6 +5,8 @@ import * as d3 from "d3";
 import 'd3-selection-multi';
 import { parseSvg } from "d3-interpolate/src/transform/parse";
 
+import * as gu from "../util/GraphUtil";
+
 import style from './style.less';
 import { Form, FormGroup, Label, Input, Button, FormText } from 'reactstrap';
 import InlineInput from '../inline';
@@ -61,7 +63,7 @@ nodes edges categories traversals adjacency reachability = nectar
 			groupsVisible: false,
 			backgroundVisible: false,
 
-			menuVisible: true,
+			menuVisible: false,
 			toolboxVisible: true,
 
 			background: {
@@ -156,7 +158,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		var obj = {};
 		obj[key] = value;
 		this.setState(obj);
-		this.redraw(true);
+		this.redraw();
 	}
 
 	randomGraphClick(event) {
@@ -183,7 +185,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				nodes: this.state.nodes,
 				edges: this.state.edges
 			});
-			this.redraw(false);
+			this.redraw();
 		}
 	}
 
@@ -412,7 +414,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				this.store.setState({
 					edges: this.state.edges
 				});
-				this.redraw(true);
+				this.redraw();
 			}
 		} else {
 			this.state.selectedNodes = (this.state.selectedNodes && this.mode() == MODE_SELECT_ADD ? this.state.selectedNodes : []);
@@ -426,7 +428,7 @@ nodes edges categories traversals adjacency reachability = nectar
 		}
 	}
 
-	redraw(sort=false) {
+	redraw() {
 		console.log('redraw');
 
 		var bg = (this.state.background && this.state.background.bgid) ? document.getElementById(this.state.background.bgid) : null;
@@ -470,10 +472,33 @@ nodes edges categories traversals adjacency reachability = nectar
 			.attr('y', d=>Math.min(d.start[1],d.end[1]))
 			.attr('width', d=>Math.abs(d.start[0]-d.end[0]))
 			.attr('height', d=>Math.abs(d.start[1]-d.end[1]));
-		//Regions
+
+		//Groups
+		this.state.nodes.forEach(node => { if (!node.size) node.size = 8 });
+		var hullNodes = gu.convexHull(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
+		console.log("HULL!!!!!!!!!!!", hullNodes)
+		var hull = this.container.selectAll("path.hull").data([hullNodes]);
+		hull.enter().append("path")
+			.attr("class", "hull")
+		.merge(hull)
+			.attr("d", function(d) { return gu.path(d); })
+			.style('stroke', '#ff7f0e')
+			.style('stroke-width','20px')
+			.style('stroke-linejoin','round')
+			.style('fill','none');
+
+		var hull2 = this.container.selectAll("path.hull2").data([hullNodes]);
+		hull2.enter().append("path")
+			.attr("class", "hull2")
+		.merge(hull2)
+			.attr("d", function(d) { return gu.radialPath(d, 3); })
+			.style('stroke', '#08e629')
+			.style('stroke-width','2px')
+			.style('stroke-linejoin','round')
+			.style('fill','none')
 
 		//Edges
-		var edge = this.container.selectAll("path")
+		var edge = this.container.selectAll("path." + style.line)
 			.data(this.state.edges.filter(edge => (this.state.edgesVisible && this.store.line(edge) !== null)));
 
 		edge.exit().remove();
@@ -488,7 +513,7 @@ nodes edges categories traversals adjacency reachability = nectar
 					selectedNodes: that.mode() == MODE_SELECT_ADD ? that.state.selectedNodes : [],
 					dragged: null
 				});
-				that.redraw(true);
+				that.redraw();
 			})
 			.style("opacity", 0)
 			.transition(t)
@@ -505,7 +530,6 @@ nodes edges categories traversals adjacency reachability = nectar
 		//Nodes
 		var circle = this.container.selectAll("circle")
 			.data(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
-		var radius = 8.5
 
 		circle.exit().remove();
 		circle.enter().append("circle")
@@ -527,7 +551,7 @@ nodes edges categories traversals adjacency reachability = nectar
 				return d.y;
 			})
 			.attr("r", function(d){
-				return (d.size ? d.size : radius);
+				return (d.size);
 			})
 			.style('stroke','#444')
 			.style('stroke-width','1.5px');

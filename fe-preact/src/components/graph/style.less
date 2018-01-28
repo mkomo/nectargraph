@@ -19,22 +19,67 @@ svg:focus{
 }
 .graph_menu {
 	position: absolute;
-	padding: 0.5em;
 	top: 0;
 	left: 0;
 }
+.graph_menu_expanded .graph_form_wrapper {
+	background-color: #9fb8ad;
+}
+.graph_menu_toggle {
+	position: absolute;
+	// display: none;
+	background-color: #fff;
+	border: 1px solid rgba(80, 80, 80, 0.25);
+	border-left: none;
+	cursor: pointer;
+	z-index: 2;
+	padding: 0.25em;
+	right: 0;
+	top: 1em;
+}
+.graph_menu_expanded .graph_menu_toggle {
+	display: inline-block;
+}
+.graph_menu_hidden .graph_menu_toggle {
+	display: inline-block;
+	left: 0;
+}
+.graph_form_wrapper {
+	padding: 0.5em;
+	max-width: 18em;
+}
+.menu_expansion {
+	max-width: 18em;
+	padding: 0.5em;
+}
+.menu_expansion form {
+	width: 17em;
+}
 .graph_menu_expanded {
+	height: 100%;
 	background-color: #fff;
 	border-right: 1px solid #ddd;
-	height: 100%;
 	overflow-y: auto;
 	overflow-x: hidden;
 }
+.graph_menu_hidden {
+	height: 100%;
+	overflow-y: hidden;
+}
+.graph_menu_hidden .graph_form_wrapper, .graph_menu_hidden .menu_expansion {
+	max-width: 0;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	opacity: 0;
+	transition-property: all;
+	transition-duration: .5s;
+	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
 .graph_form {
-	width: 17em;
+	z-index: 1;
 	background: #FFF;
+	width: 17em;
 	box-shadow: 0 0 0.2em 0.2em rgba(80, 80, 80, 0.25);
-
 }
 .graph_form h2 {
 	margin: 0 -0.25em;
@@ -60,13 +105,16 @@ svg:focus{
 	position: absolute;
 	bottom: 0;
 	right: 0.5em;
+	width: 1em;
+	text-align: center;
+	cursor: pointer;
 }
 
 .toolbox {
     padding: 0 0 0.75em 0;
     border-top: 1px solid rgba(0,0,0,.1);
     margin: 0 1em 0.5em 1em;
-	max-height: 220px;
+	max-height: 16em;
 	transition-property: all;
 	transition-duration: .5s;
 	transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
@@ -74,12 +122,16 @@ svg:focus{
 .toolbox.closed {
 	max-height: 0;
 	padding: 0;
-	border-top: 1px solid rgba(0,0,0,0);
+	overflow-x: hidden;
 	overflow-y: hidden;
+	border-top: 1px solid rgba(0,0,0,0);
 }
 .toolbox h6 {
 	margin-top: 0.3em;
-	margin-bottom: 0.2em;
+	margin-bottom: 0;
+}
+.toolbox .toolbox_row {
+	margin-top: 0.2em;
 }
 
 .toolbox button {

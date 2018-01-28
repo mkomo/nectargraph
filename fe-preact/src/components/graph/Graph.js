@@ -47,6 +47,7 @@ nodes edges categories traversals adjacency reachability = nectar
 	constructor(props) {
 		super(props);
 
+		//stuff that won't be persisted
 		this.state = {
 			mode: MODE_SELECT,
 			selectedNodes: [],
@@ -60,6 +61,7 @@ nodes edges categories traversals adjacency reachability = nectar
 			groupsVisible: false,
 			backgroundVisible: false,
 
+			menuVisible: true,
 			toolboxVisible: true,
 
 			background: {
@@ -753,7 +755,14 @@ pane:
 		return (
 			<div class={style.graph_container}>
 				<div id="graph"></div>
-				<div class={expanded ? style.graph_menu + ' ' + style.graph_menu_expanded : style.graph_menu}>
+				<div class={style.graph_menu + (!this.state.menuVisible
+						? ' ' + style.graph_menu_hidden
+						: (expanded ? ' ' + style.graph_menu_expanded : '')
+					)}>
+					<a class={style.graph_menu_toggle} onClick={ e=>this.handleToggle('menuVisible', !this.state.menuVisible) }>
+						<i class={ 'fa fa-angle-double-' + (this.state.menuVisible ? 'left' : 'right') } aria-hidden="true"></i>
+					</a>
+					<div class={style.graph_form_wrapper}>
 					<div class={style.graph_form}>
 						<div class={style.menu_minimal}>
 							<h2>
@@ -780,15 +789,15 @@ pane:
 							*/}
 							<a onClick={ e=>this.handleToggle('toolboxVisible', !this.state.toolboxVisible) } class={style.menu_expand_button}>
 								{ this.state.toolboxVisible
-									? (<i class="fa fa-angle-double-up" aria-hidden="true"></i>)
-									: (<i class="fa fa-angle-double-down" aria-hidden="true"></i>)
+									? (<i class="fa fa-angle-up" aria-hidden="true"></i>)
+									: (<i class="fa fa-ellipsis-v" aria-hidden="true"></i>)
 								}
 							</a>
 						</div>
 						<div class={style.menu_minimal + ' ' + style.toolbox + (this.state.toolboxVisible ? '' : (' ' + style.closed))}>
 
 							<h6>view</h6>
-							<div>
+							<div class={style.toolbox_row}>
 								<span class={style.toolbox_grp}>
 									{/*zoom to extent, zoom to selection*/}
 									<button class={style.icon + (this.state.modeAdd ? ' ' + style.active : '')}>
@@ -884,8 +893,18 @@ pane:
 									</Tooltip>
 								</span>
 							</div>
+							<div class={style.toolbox_row}>
+								<span class={style.toolbox_grp}>
+									{/*undo*/}
+									<Tooltip text="undo last action" position="bottom">
+										<button>
+											bulk add ...
+										</button>
+									</Tooltip>
+								</span>
+							</div>
 							<h6>download</h6>
-							<div>
+							<div class={style.toolbox_row}>
 								<span class={style.toolbox_grp}>
 									<button onClick={this.downloadGraphSvg}>
 										<i class="fa fa-arrow-circle-down" aria-hidden="true"></i> svg
@@ -897,11 +916,11 @@ pane:
 							</div>
 						</div>
 					</div>
-					<div>
+					</div>
+					<div class={style.menu_expansion}>
 						{ node && node.length > 0
 							? (
 								<Form onSubmit={e=>{e.preventDefault();this.updateSelected()}}>
-									<hr />
 									<h5>
 										{node.length + (node.length > 1 ? ' nodes' : ' node') + ' selected'}
 									</h5>
@@ -926,7 +945,6 @@ pane:
 						{ edge
 							?
 								<Form onSubmit={this.updateSelected}>
-									<hr />
 									<h5>
 										{ edge ? (<small>1 edge selected</small>) : ''}
 									</h5>

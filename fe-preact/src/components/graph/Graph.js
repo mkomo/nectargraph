@@ -475,27 +475,30 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		//Groups
 		this.state.nodes.forEach(node => { if (!node.size) node.size = 8 });
-		var hullNodes = gu.convexHull(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
-		console.log("HULL!!!!!!!!!!!", hullNodes)
+		var hullNodes = gu.convexHullRadius(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
 		var hull = this.container.selectAll("path.hull").data([hullNodes]);
-		hull.enter().append("path")
-			.attr("class", "hull")
-		.merge(hull)
-			.attr("d", function(d) { return gu.path(d); })
-			.style('stroke', '#ff7f0e')
-			.style('stroke-width','20px')
-			.style('stroke-linejoin','round')
-			.style('fill','none');
-
+		hull.exit().remove();
 		var hull2 = this.container.selectAll("path.hull2").data([hullNodes]);
-		hull2.enter().append("path")
-			.attr("class", "hull2")
-		.merge(hull2)
-			.attr("d", function(d) { return gu.radialPath(d, 3); })
-			.style('stroke', '#08e629')
-			.style('stroke-width','2px')
-			.style('stroke-linejoin','round')
-			.style('fill','none')
+		hull2.exit().remove();
+		if (hullNodes.length > 0) {
+			hull.enter().append("path")
+				.attr("class", "hull")
+			.merge(hull)
+				.attr("d", function(d) { return gu.path(d); })
+				.style('stroke', '#ff7f0e')
+				.style('stroke-width','20px')
+				.style('stroke-linejoin','round')
+				.style('fill','none');
+
+			hull2.enter().append("path")
+				.attr("class", "hull2")
+			.merge(hull2)
+				.attr("d", function(d) { return gu.radialPath(d, 3); })
+				.style('stroke', '#08e629')
+				.style('stroke-width','2px')
+				.style('stroke-linejoin','round')
+				.style('fill','none')
+		}
 
 		//Edges
 		var edge = this.container.selectAll("path." + style.line)

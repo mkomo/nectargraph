@@ -28,7 +28,79 @@ function convexHull(nodes, space = 0) {
 	return lower.concat(upper);
 }
 
-function convexHullRadius(nodes, margin = 0) {
+function convexHullNodes(nodes, margin) {
+	//return only the nodes
+}
+
+function convexHullPath(ch, margin){
+	//return the path
+	return
+}
+
+class ConvexHull {
+	constructor(margin = 0) {
+		this.margin = 0;
+		this.seq = [];
+	}
+
+	push(node) {
+		console.log('push', this.seq);
+		if (this.seq.length == 0) {
+			this.seq.push(node);
+		} else {
+			for (var i = 0; i < this.seq.length; i++) {
+				var l = this.seq.length;
+				if (this.isOutside(node, this.seq[i], this.seq[(i+1) % l])) {
+					console.log(node.name, 'is outside', this.seq.map(n=>n.name));
+					var nodesToRemove = 0
+					while (nodesToRemove < l && !this.isOutside(this.seq[(i+nodesToRemove) % l],node,this.seq[(i+nodesToRemove+1) % l])) {
+						console.log('removing',this.seq[(i+nodesToRemove) % l].name);
+						nodesToRemove++;
+					}
+					this.seq.splice(i,nodesToRemove,node);
+					i++;
+					if (i + nodesToRemove > l) {
+						this.seq.splice(0, nodesToRemove - l)
+					}
+				}
+			}
+		}
+	}
+
+	isOutside(node, a, b) {
+		if (a === b || node === a || node === b) {
+			if (!this.isNodeContainedBy(node, a)) {
+				return true;
+			}
+		} else {
+			//if node contains a or b
+			if (this.isNodeContainedBy(a, node) || this.isNodeContainedBy(b, node)) {
+				console.log('node contained by')
+				return true;
+			}
+			var seg = leftTangentSegment(a, b, this.margin);
+			var segA = leftTangentSegment(a, node, this.margin);
+			if (seg[0][0] == seg[1][0]) {
+				return (seg[0][1] > seg[1][1]) ? node.x + node.size > seg[0][0] : node.x - node.size < seg[0][0]
+			} else {
+				var mOrig = (seg[1][1] - seg[0][1]) / (seg[1][0] - seg[0][0]);
+				var mNew = (segA[1][1] - segA[0][1]) / (segA[1][0] - segA[0][0]);
+				if (seg[0][0] < seg[1][0]) {
+					return mOrig < mNew;
+				} else {
+					return mOrig > mNew;
+				}
+			}
+		}
+	}
+
+	isNodeContainedBy(inside, outside) {
+		var offset = [(outside.x - inside.x), (outside.y - inside.y)];
+		return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) < outside.size;
+	}
+}
+
+function convexHullRadius(nodes, margin = 0, ch = new ConvexHull(margin)) {
 	/*
 	All segments will have monotonically decreasing slopes
 
@@ -45,7 +117,15 @@ function convexHullRadius(nodes, margin = 0) {
 	...
 
 	*/
+	var origNodes = nodes.slice();
+	if (origNodes.length == 0) {
+		return ch;
+	} else {
+		ch.push(origNodes[0]);
+		return convexHullRadius(origNodes.slice(1), margin, ch);
+	}
 }
+
 
 function leftTangentSegment(b, a, margin) {
 	//https://en.wikipedia.org/wiki/Tangent_lines_to_circles#Tangent_lines_to_two_circles

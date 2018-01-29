@@ -62,33 +62,51 @@ function leftTangentSegment(b, a, margin) {
 	return [end, start];
 }
 
+function crossProduct(u,v){
+	//U x V = Ux*Vy-Uy*Vx
+	return (u[1][0] - u[0][0])*(v[1][1] - v[0][1]) - (u[1][1] - u[0][1])*(v[1][0] - v[0][0])
+}
+
 function radialPath(nodes, margin = 0){
 	var path = 'M';
-	var seg = leftTangentSegment(nodes[nodes.length - 1], nodes[0], margin);
-	var first = seg.slice();
-	path += seg.join('L');
-	for (var i = 0; i < nodes.length - 1; i++) {
-		var next = leftTangentSegment(nodes[i], nodes[i+1], margin);
-		/*
-		A rx ry x-axis-rotation large-arc-flag sweep-flag x y
-		*/
-		// path += 'M'
-		path += ['A',nodes[i].size + margin,nodes[i].size + margin,0,
-			0,
+	if (nodes.length == 1) {
+		var n = nodes[0];
+		var r = n.size + margin;
+		//create two separate arcs so that svg doesn't get confused about which one is going which way.
+		path += ' ' + [[n.x, n.y - r]].join('');
+		//arc 1 (90deg)
+		path += ' ' + ['A', r, r, 0, 0, 0].join(' ');
+		path += ' ' + [[n.x - r, nodes[0].y]].join('');
+		//arc 2 (270deg)
+		path += ' ' + ['A', r, r, 0, 1, 0].join(' ');
+		path += ' ' + [[n.x, n.y - r]].join('');
+		console.log('nodes.length == 1', path);
+	} else {
+		var seg = leftTangentSegment(nodes[nodes.length - 1], nodes[0], margin);
+		var first = seg.slice();
+		path += seg.join('L');
+		for (var i = 0; i < nodes.length - 1; i++) {
+			var next = leftTangentSegment(nodes[i], nodes[i+1], margin);
+			/*
+			A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+			*/
+			path += ['A',nodes[i].size + margin,nodes[i].size + margin,0,
+				crossProduct(seg, next) > 0 ? 0 : 1, // test to see if angle between vectors is pos or neg
+				1
+			].join(' ');
+			path += next.join('L');
+			seg = next;
+		}
+		path += ['A',nodes[nodes.length - 1].size + margin,nodes[nodes.length - 1].size + margin,0,
+			crossProduct(seg, first) > 0 ? 0 : 1,
 			1
 		].join(' ');
-		path += next.join('L');
-		seg = next;
+		path += first[0];
 	}
-	path += ['A',nodes[nodes.length - 1].size + margin,nodes[nodes.length - 1].size + margin,0,
-		0,
-		1
-	].join(' ');
-	path += first[0];
 	return path;
 }
 
-function path(nodes, margin, closed = true){
+function path(nodes, closed = true){
 	var path = 'M';
 	path += nodes.map(n=>[n.x, n.y]).join('L');
 	if (closed) path += 'Z';

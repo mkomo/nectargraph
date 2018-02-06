@@ -1,5 +1,5 @@
 function cross(a, b, o) {
-   return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
+	return (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x)
 }
 
 function convexHull(nodes, space = 0) {
@@ -53,10 +53,11 @@ class ConvexHull {
 				if (this.isOutside(node, this.seq[i], this.seq[(i+1) % l])) {
 					console.log(node.name, 'is outside', this.seq.map(n=>n.name));
 					var nodesToRemove = 0
-					while (nodesToRemove < l && !this.isOutside(this.seq[(i+nodesToRemove) % l],node,this.seq[(i+nodesToRemove+1) % l])) {
-						console.log('removing',this.seq[(i+nodesToRemove) % l].name);
-						nodesToRemove++;
-					}
+					// while (nodesToRemove < l && !this.isOutside(this.seq[(i+nodesToRemove) % l],node,this.seq[(i+nodesToRemove+1) % l])) {
+					// 	console.log('removing',this.seq[(i+nodesToRemove) % l].name);
+					// 	nodesToRemove++;
+					// }
+					// console.log('splice', i, nodesToRemove, node.name);
 					this.seq.splice(i,nodesToRemove,node);
 					i++;
 					if (i + nodesToRemove > l) {
@@ -104,6 +105,7 @@ function convexHullRadius(nodes, margin = 0, ch = new ConvexHull(margin)) {
 	/*
 	All segments will have monotonically decreasing slopes
 
+	=========================old version=============================
 	get node W that starts first (x-size is least)
 	get node N that is the highest (y+size greatest)
 	D = sort all nodes A by (A.x-A.size) where A.x-A.size is less than N.x (this will include N)
@@ -126,6 +128,98 @@ function convexHullRadius(nodes, margin = 0, ch = new ConvexHull(margin)) {
 	}
 }
 
+
+class Hull {
+	constructor(margin = 0) {
+		this.margin = 0;
+		//This always starts with the node with the leftmost edge. if nodes are tied for leftmost, take the bottommost
+		//TODO make private
+		this.seq = [];
+	}
+
+	add(node) {
+		if (this.seq.length === 0) {
+			this.seq.push(node);
+			return 1;
+		} else {
+			var places = 0;
+			places += this.addFirst(node);
+			for (var i = 0; i <= this.seq.length; i++) {
+				var before = this.seq[i];
+				var after = this.seq[(i+1) % this.seq.length];
+				if (before !== node && after !== node) {
+					//if before and after are both contained by node, splice out both
+					//if before is contained by node, splice out before
+					//if after is contained by node, splice out after
+					//if before-node is outside before-after, add node between before and after
+				}
+			}
+
+			for (var i = 0; i <= this.seq.length;) {
+				// get angle A from i to i+1, get angle B from i+1 to i+2
+				//if angle B is greater than angle A, remove i+1, else i++
+				i++;
+			}
+		}
+	}
+
+	addFirst(node) {
+		if (this.seq.length === 0) {
+			//hull empty, add node
+			this.seq.push(node);
+			return 1;
+		} else {
+			var left = node.x - node.size;
+			var currLeft = this.seq[0].x - this.seq[0].size
+			if ((currLeft > left)
+				|| (currLeft == left && this.seq[0].y < node.y)
+				|| (currLeft == left && this.seq[0].y == node.y && node.size > this.seq[0].size)) {
+				//node at hull start and larger than existing start, remove
+				this.seq.splice(0,this.isNodeContainedBy(this.seq[0], node) ? 1 : 0, node);
+				return 1;
+			}
+		}
+	}
+
+	addAll(nodes) {
+		for (var i = 0; i < nodes.length; i++) {
+			this.add(nodes[i]);
+		}
+	}
+
+	isOutside(node, a, b) {
+	}
+
+	isNodeContainedBy(inside, outside) {
+		var offset = [(outside.x - inside.x), (outside.y - inside.y)];
+		return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) <= outside.size;
+	}
+}
+
+function convexHullRadius2(nodes, margin = 0, h = new Hull(margin)) {
+	/*
+	All segments will have monotonically decreasing slopes
+
+
+	=========================new version=============================
+	iterate through nodes. get N:
+		if ch empty, add N to ch
+		else
+			for M in ch:
+				if M inside N, replace M with N
+				else
+	=========================old version=============================
+	...
+	...
+
+	*/
+	h.addAll(nodes);
+	return h;
+}
+
+function leftTangentAngle(start, end) {
+
+}
 
 function leftTangentSegment(b, a, margin) {
 	//https://en.wikipedia.org/wiki/Tangent_lines_to_circles#Tangent_lines_to_two_circles
@@ -196,6 +290,7 @@ function path(nodes, closed = true){
 export {
 	convexHull,
 	convexHullRadius,
+	convexHullRadius2,
 	radialPath,
 	path
 }

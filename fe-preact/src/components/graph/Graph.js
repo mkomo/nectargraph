@@ -475,11 +475,10 @@ nodes edges categories traversals adjacency reachability = nectar
 
 		//Groups
 		this.state.nodes.forEach(node => { if (!node.size) node.size = 8 });
-		var hullNodes = gu.convexHullRadius(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
+		var hullNodes = gu.convexHull(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
+		console.log('hull!', hullNodes)
 		var hull = this.container.selectAll("path.hull").data([hullNodes]);
 		hull.exit().remove();
-		var hull2 = this.container.selectAll("path.hull2").data([hullNodes]);
-		hull2.exit().remove();
 		if (hullNodes.length > 0) {
 			hull.enter().append("path")
 				.attr("class", "hull")
@@ -489,13 +488,32 @@ nodes edges categories traversals adjacency reachability = nectar
 				.style('stroke-width','20px')
 				.style('stroke-linejoin','round')
 				.style('fill','none');
+		}
 
+		var hullNodesRadius = gu.convexHullRadius(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
+		var hullRadius = this.container.selectAll("path.hullRadius").data([hullNodesRadius]);
+		hullRadius.exit().remove();
+		if (hullNodes.length > 0) {
+			hullRadius.enter().append("path")
+				.attr("class", "hullRadius")
+			.merge(hullRadius)
+				.attr("d", function(d) { return gu.radialPath(d, 3); })
+				.style('stroke', '#08e629')
+				.style('stroke-width','2px')
+				.style('stroke-linejoin','round')
+				.style('fill','none')
+		}
+
+		var hullNodes2 = gu.convexHullRadius2(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
+		var hull2 = this.container.selectAll("path.hull2").data([hullNodes2]);
+		hull2.exit().remove();
+		if (hullNodes.length > 0) {
 			hull2.enter().append("path")
 				.attr("class", "hull2")
 			.merge(hull2)
 				.attr("d", function(d) { return gu.radialPath(d, 3); })
-				.style('stroke', '#08e629')
-				.style('stroke-width','2px')
+				.style('stroke', 'rgb(23, 61, 68)')
+				.style('stroke-width','1px')
 				.style('stroke-linejoin','round')
 				.style('fill','none')
 		}

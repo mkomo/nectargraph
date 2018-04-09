@@ -2,11 +2,12 @@ import { LuxLocalStore, Lux } from './LuxStore';
 
 
 class Node {
-	constructor(x, y, name, categories = []) {
+	constructor(x, y, name, size = 8, categories = []) {
 		this.id = Lux.guid();
 		this.type = 'node';
 		this.x = x;
 		this.y = y;
+		this.size = size;
 		this.name = name;
 		this.categories = categories;
 		this.deleted = false;

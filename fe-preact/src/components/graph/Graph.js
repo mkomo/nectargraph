@@ -476,7 +476,6 @@ nodes edges categories traversals adjacency reachability = nectar
 		//Groups
 		this.state.nodes.forEach(node => { if (!node.size) node.size = 8 });
 		var hullNodes = gu.convexHull(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted));
-		console.log('hull!', hullNodes)
 		var hull = this.container.selectAll("path.hull").data([hullNodes]);
 		hull.exit().remove();
 		if (hullNodes.length > 0) {
@@ -490,21 +489,8 @@ nodes edges categories traversals adjacency reachability = nectar
 				.style('fill','none');
 		}
 
-		var hullNodesRadius = gu.convexHullRadius(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
-		var hullRadius = this.container.selectAll("path.hullRadius").data([hullNodesRadius]);
-		hullRadius.exit().remove();
-		if (hullNodes.length > 0) {
-			hullRadius.enter().append("path")
-				.attr("class", "hullRadius")
-			.merge(hullRadius)
-				.attr("d", function(d) { return gu.radialPath(d, 3); })
-				.style('stroke', '#08e629')
-				.style('stroke-width','2px')
-				.style('stroke-linejoin','round')
-				.style('fill','none')
-		}
-
 		var hullNodes2 = gu.convexHullRadius2(this.state.nodes.filter(node => this.state.nodesVisible && !node.deleted)).seq;
+		console.log('hull!', ...hullNodes2.map(n=>n.name));
 		var hull2 = this.container.selectAll("path.hull2").data([hullNodes2]);
 		hull2.exit().remove();
 		if (hullNodes.length > 0) {
@@ -629,26 +615,9 @@ nodes edges categories traversals adjacency reachability = nectar
 				})
 				.text(d=>d.name);
 
-		//Cleanup (sorting)
-		if (sort) {
-			var comps = 0;
-			this.container.selectAll("path,circle").sort(function(a,b){
-				comps++;
-				if (a.type ===  b.type){
-					//a and b are either both nodes or both edges
-					return a.id.localeCompare(b.id);
-				} else if (a.type ===  Node.type){
-					// a is an edge and b is not
-					return 1;
-				} else {
-					// b is an edge and a is not
-					return -1;
-				}
-			});
-			console.debug('sorting', comps);
-		} else {
-			console.debug('not sorting');
-		}
+		this.container.selectAll("circle").sort(function(a,b){
+			return a.size == b.size ? 0 : (a.size > b.size ? -1 : 1);
+		});
 		nodelabels.raise();
 	}
 

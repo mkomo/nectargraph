@@ -28,106 +28,6 @@ function convexHull(nodes, space = 0) {
 	return lower.concat(upper);
 }
 
-function convexHullNodes(nodes, margin) {
-	//return only the nodes
-}
-
-function convexHullPath(ch, margin){
-	//return the path
-	return
-}
-
-class ConvexHull {
-	constructor(margin = 0) {
-		this.margin = 0;
-		this.seq = [];
-	}
-
-	push(node) {
-		console.log('push', this.seq);
-		if (this.seq.length == 0) {
-			this.seq.push(node);
-		} else {
-			for (var i = 0; i < this.seq.length; i++) {
-				var l = this.seq.length;
-				if (this.isOutside(node, this.seq[i], this.seq[(i+1) % l])) {
-					console.log(node.name, 'is outside', this.seq.map(n=>n.name));
-					var nodesToRemove = 0
-					// while (nodesToRemove < l && !this.isOutside(this.seq[(i+nodesToRemove) % l],node,this.seq[(i+nodesToRemove+1) % l])) {
-					// 	console.log('removing',this.seq[(i+nodesToRemove) % l].name);
-					// 	nodesToRemove++;
-					// }
-					// console.log('splice', i, nodesToRemove, node.name);
-					this.seq.splice(i,nodesToRemove,node);
-					i++;
-					if (i + nodesToRemove > l) {
-						this.seq.splice(0, nodesToRemove - l)
-					}
-				}
-			}
-		}
-	}
-
-	isOutside(node, a, b) {
-		if (a === b || node === a || node === b) {
-			if (!this.isNodeContainedBy(node, a)) {
-				return true;
-			}
-		} else {
-			//if node contains a or b
-			if (this.isNodeContainedBy(a, node) || this.isNodeContainedBy(b, node)) {
-				console.log('node contained by')
-				return true;
-			}
-			var seg = leftTangentSegment(a, b, this.margin);
-			var segA = leftTangentSegment(a, node, this.margin);
-			if (seg[0][0] == seg[1][0]) {
-				return (seg[0][1] > seg[1][1]) ? node.x + node.size > seg[0][0] : node.x - node.size < seg[0][0]
-			} else {
-				var mOrig = (seg[1][1] - seg[0][1]) / (seg[1][0] - seg[0][0]);
-				var mNew = (segA[1][1] - segA[0][1]) / (segA[1][0] - segA[0][0]);
-				if (seg[0][0] < seg[1][0]) {
-					return mOrig < mNew;
-				} else {
-					return mOrig > mNew;
-				}
-			}
-		}
-	}
-
-	isNodeContainedBy(inside, outside) {
-		var offset = [(outside.x - inside.x), (outside.y - inside.y)];
-		return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) < outside.size;
-	}
-}
-
-function convexHullRadius(nodes, margin = 0, ch = new ConvexHull(margin)) {
-	/*
-	All segments will have monotonically decreasing slopes
-
-	=========================old version=============================
-	get node W that starts first (x-size is least)
-	get node N that is the highest (y+size greatest)
-	D = sort all nodes A by (A.x-A.size) where A.x-A.size is less than N.x (this will include N)
-	...
-	for a in D, if
-	get node E that ends last (x+size is greatest)
-	E = sort all nodes A by (A.x+A.size) where A.x+A.size is greater than N.x
-	...
-	get node S that is the lowest (y-size is smallest)
-	...
-	...
-
-	*/
-	var origNodes = nodes.slice();
-	if (origNodes.length == 0) {
-		return ch;
-	} else {
-		ch.push(origNodes[0]);
-		return convexHullRadius(origNodes.slice(1), margin, ch);
-	}
-}
-
 
 class Hull {
 	constructor(margin = 0) {
@@ -138,61 +38,116 @@ class Hull {
 	}
 
 	add(node) {
+		var debug = console.debug;
 		if (this.seq.length === 0) {
+			// seq is empty, add unconditionally
 			this.seq.push(node);
 			return 1;
 		} else {
 			var places = 0;
-			places += this.addFirst(node);
-			for (var i = 0; i <= this.seq.length; i++) {
-				var before = this.seq[i];
-				var after = this.seq[(i+1) % this.seq.length];
-				if (before !== node && after !== node) {
-					//if before and after are both contained by node, splice out both
-					//if before is contained by node, splice out before
-					//if after is contained by node, splice out after
-					//if before-node is outside before-after, add node between before and after
+			var loops = 0;
+			for (let i = 0; i < this.seq.length; i++) {
+				loops++;
+				if (loops > 20) {
+					console.error('you fucked it up, matt');
+					return;
+				}
+				var z = this.seq[(i + this.seq.length - 1) % this.seq.length];
+				var a = this.seq[i];
+				var b = this.seq[(i+1) % this.seq.length];
+				debug('+should?', node.name, 'to (', ...this.seq.map(n=>n.name), ') after', a.name, '@', i);
+
+				//new chunklet
+				if (z === a && b === a) {
+					let isOutside = node !== a && !isNodeAinNodeB(node, a);
+					if (isOutside) {
+						debug('+    splice ONE NODE', isOutside);
+						this.seq.splice(i+1, 0, node);
+					}
+				} else if (isOutsideNew(node, z, a, b)) {
+					// this is necessary and sufficient
+					let nodesToRemoveBack = 0;
+					let nodesToRemoveForward = 0;
+
+					//TODO remove back? this didn't seem necessary? think abt that edge case
+
+					while (isOutsideNew(
+						...this.subseq(i + nodesToRemoveForward + 2, 1), a, node, ...this.subseq(i + nodesToRemoveForward + 1, 1))) {
+						nodesToRemoveForward++
+						if (nodesToRemoveForward > 10) {
+							debug('you fucked up, forward');
+							break;
+						}
+					}
+					debug('removing back and forth', nodesToRemoveBack, nodesToRemoveForward);
+
+					let newi = i;
+					for (let j = 0; j < (nodesToRemoveBack + nodesToRemoveForward); j++) {
+						let rempos = (newi + this.seq.length - nodesToRemoveBack + 1) % this.seq.length;
+						debug('removing', rempos, this.seq[rempos].name, 'from [', ...this.seq.map(n=>n.name), '] with i @', i)
+						this.seq.splice(rempos, 1);
+						if (rempos <= i) {
+							newi--;
+						}
+					}
+					i = newi;
+					debug('+    splice', node.name, 'at', newi+1, 'in', ...this.seq.map(n=>n.name))
+					this.seq.splice(newi+1, 0, node);
 				}
 			}
 
-			for (var i = 0; i <= this.seq.length;) {
-				// get angle A from i to i+1, get angle B from i+1 to i+2
-				//if angle B is greater than angle A, remove i+1, else i++
-				i++;
-			}
+			return places;
 		}
 	}
 
-	addFirst(node) {
-		if (this.seq.length === 0) {
-			//hull empty, add node
-			this.seq.push(node);
-			return 1;
-		} else {
-			var left = node.x - node.size;
-			var currLeft = this.seq[0].x - this.seq[0].size
-			if ((currLeft > left)
-				|| (currLeft == left && this.seq[0].y < node.y)
-				|| (currLeft == left && this.seq[0].y == node.y && node.size > this.seq[0].size)) {
-				//node at hull start and larger than existing start, remove
-				this.seq.splice(0,this.isNodeContainedBy(this.seq[0], node) ? 1 : 0, node);
-				return 1;
-			}
+	subseq(start, length) {
+		let subseq = [];
+		for (let offset = 0; offset < length; offset++) {
+			let index = ((start % this.seq.length) + this.seq.length + offset) % this.seq.length;
+			subseq.push(this.seq[index]);
 		}
+		return subseq;
 	}
 
 	addAll(nodes) {
+		console.log('nodes\n' + nodes.map(n=>('\t' + n.name + ": new Node(" + n.x + ",\t" +
+			n.y + ",\t'" +
+			n.name + "',\t" +
+			n.size + ')')).join('\n'))
 		for (var i = 0; i < nodes.length; i++) {
 			this.add(nodes[i]);
 		}
 	}
+}
 
-	isOutside(node, a, b) {
-	}
+function isNodeAinNodeB(inside, outside) {
+	var offset = [(outside.x - inside.x), (outside.y - inside.y)];
+	return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) <= outside.size;
+}
 
-	isNodeContainedBy(inside, outside) {
-		var offset = [(outside.x - inside.x), (outside.y - inside.y)];
-		return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) <= outside.size;
+
+function isOutsideNew(node, z, a, b) {
+	var debug = console.debug;
+	debug('isOutsideNew', node.name, z.name, a.name, b.name);
+	if (node === a) {
+		debug('isOutsideNew node === a', false);
+		return false;
+	} else if (isNodeAinNodeB(a, node)) {
+		debug('isOutsideNew node surrounds a', true);
+		return true;
+	} else {
+		let za = leftTangentAngle(z, a);
+		let anode = leftTangentAngle(a, node);
+		let ab = leftTangentAngle(a, b);
+		if (za < ab) {
+			let isOutside = anode > za && anode < ab;
+			debug('isOutsideNew za >= ab', za,anode, ab, isOutside);
+			return isOutside;
+		} else {
+			let isOutside = anode > za || anode < ab;
+			debug('isOutsideNew za >= ab', za,anode, ab, isOutside);
+			return isOutside;
+		}
 	}
 }
 
@@ -218,28 +173,66 @@ function convexHullRadius2(nodes, margin = 0, h = new Hull(margin)) {
 }
 
 function leftTangentAngle(start, end) {
-
+	var v = vector(leftTangentSegment(start, end));
+	return angleOf(v);
 }
 
-function leftTangentSegment(b, a, margin) {
+function leftTangentSegment(start, end, margin = 0) {
 	//https://en.wikipedia.org/wiki/Tangent_lines_to_circles#Tangent_lines_to_two_circles
 
-	//y axis must be reversed
-	const dy = -1 * (b.y - a.y);
-	const dx = b.x - a.x;
+	const dy = end.y - start.y;
+	const dx = end.x - start.x;
 	const hp = Math.PI / 2;
-	var gamma = Math.atan2(dy, dx);
-	var beta = Math.asin((b.size - a.size)/Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)));
-	var alpha = gamma - beta;
-	var start = [a.x + (a.size + margin)*Math.cos(hp - alpha), a.y + (a.size + margin)*Math.sin(hp - alpha)];
-	var end = [b.x + (b.size + margin)*Math.cos(hp - alpha), b.y + (b.size + margin)*Math.sin(hp - alpha)];
-	return [end, start];
+	var gamma = Math.atan2(dx,-1*dy);
+	var beta = Math.asin((start.size - end.size)/Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)));
+	var alpha = gamma + beta;
+	var start = [start.x - (start.size + margin)*Math.cos(alpha), start.y - (start.size + margin)*Math.sin(alpha)];
+	var end = [end.x - (end.size + margin)*Math.cos(alpha), end.y - (end.size + margin)*Math.sin(alpha)];
+
+	return [start, end];
 }
 
-function crossProduct(u,v){
-	//U x V = Ux*Vy-Uy*Vx
-	return (u[1][0] - u[0][0])*(v[1][1] - v[0][1]) - (u[1][1] - u[0][1])*(v[1][0] - v[0][0])
+function angleOf(v) {
+	var angle = 180 - Math.atan2(v[0],v[1]) * 180 / Math.PI
+	return angle;
 }
+
+function angleDifference(alpha, beta) {
+	return (180 - (beta - alpha + (beta < alpha ? 360 : 0)));
+}
+
+function angleFormedBy(a, b, c) {
+	var v1 = normal(vector([b,a]));
+	var v2 = normal(vector([b,c]));
+
+	var sin = crossProduct(v1, v2);
+	var cos = dotProduct(v1, v2);
+	var acos = Math.acos(cos) * 180 / Math.PI; // 0 <= acos <= 180
+	console.debug(v1,v2,sin,cos,acos);
+	return (sin >= 0) ? acos : 360 - acos;
+}
+
+function dotProduct(u, v) {
+	return u[0] * v[0] + u[1] * v[1];
+}
+
+function crossProduct(u, v){
+	return u[0]*v[1] - u[1]*v[0];
+}
+
+function normal(v) {
+	let length = vLength(v);
+	return [v[0]/length, v[1]/length];
+}
+
+function vLength(v) {
+	return Math.sqrt(Math.pow(v[0],2) + Math.pow(v[1],2));
+}
+
+function vector(segment) {
+	return [segment[1][0] - segment[0][0], segment[1][1] - segment[0][1]];
+}
+
 
 function radialPath(nodes, margin = 0){
 	var path = 'M';
@@ -265,14 +258,14 @@ function radialPath(nodes, margin = 0){
 			A rx ry x-axis-rotation large-arc-flag sweep-flag x y
 			*/
 			path += ['A',nodes[i].size + margin,nodes[i].size + margin,0,
-				crossProduct(seg, next) > 0 ? 0 : 1, // test to see if angle between vectors is pos or neg
+				crossProduct(vector(seg), vector(next)) > 0 ? 0 : 1, // test to see if angle between vectors is pos or neg
 				1
 			].join(' ');
 			path += next.join('L');
 			seg = next;
 		}
 		path += ['A',nodes[nodes.length - 1].size + margin,nodes[nodes.length - 1].size + margin,0,
-			crossProduct(seg, first) > 0 ? 0 : 1,
+			crossProduct(vector(seg), vector(first)) > 0 ? 0 : 1,
 			1
 		].join(' ');
 		path += first[0];
@@ -289,7 +282,7 @@ function path(nodes, closed = true){
 
 export {
 	convexHull,
-	convexHullRadius,
+	angleFormedBy,
 	convexHullRadius2,
 	radialPath,
 	path

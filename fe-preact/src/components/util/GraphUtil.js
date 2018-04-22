@@ -38,7 +38,7 @@ class Hull {
 	}
 
 	add(node) {
-		var debug = console.debug;
+		var debug = console.log;
 		if (this.seq.length === 0) {
 			// seq is empty, add unconditionally
 			this.seq.push(node);
@@ -66,24 +66,30 @@ class Hull {
 					}
 				} else if (isOutsideNew(node, z, a, b)) {
 					// this is necessary and sufficient
-					let nodesToRemoveBack = 0;
 					let nodesToRemoveForward = 0;
 
 					//TODO remove back? this didn't seem necessary? think abt that edge case
 
+					let newi = i;
+					// if (isOutsideNew(a, a, node, b)) {
+					// 	debug('+    splice pimple', node.name, 'at', i+1, 'in', ...this.seq.map(n=>n.name))
+					// 	this.seq.splice(newi + 1, 0, node, a);
+					// }
+					debug('adding, but first removing')
 					while (isOutsideNew(
-						...this.subseq(i + nodesToRemoveForward + 2, 1), a, node, ...this.subseq(i + nodesToRemoveForward + 1, 1))) {
+							...this.subseq(i + nodesToRemoveForward + 2, 1),
+							a,
+							node,
+							...this.subseq(i + nodesToRemoveForward + 1, 1))) {
 						nodesToRemoveForward++
 						if (nodesToRemoveForward > 10) {
 							debug('you fucked up, forward');
 							break;
 						}
 					}
-					debug('removing back and forth', nodesToRemoveBack, nodesToRemoveForward);
-
-					let newi = i;
-					for (let j = 0; j < (nodesToRemoveBack + nodesToRemoveForward); j++) {
-						let rempos = (newi + this.seq.length - nodesToRemoveBack + 1) % this.seq.length;
+					debug('removing forward', nodesToRemoveForward);
+					for (let j = 0; j < (nodesToRemoveForward); j++) {
+						let rempos = (newi + this.seq.length + 1) % this.seq.length;
 						debug('removing', rempos, this.seq[rempos].name, 'from [', ...this.seq.map(n=>n.name), '] with i @', i)
 						this.seq.splice(rempos, 1);
 						if (rempos <= i) {
@@ -93,6 +99,7 @@ class Hull {
 					i = newi;
 					debug('+    splice', node.name, 'at', newi+1, 'in', ...this.seq.map(n=>n.name))
 					this.seq.splice(newi+1, 0, node);
+
 				}
 			}
 
@@ -110,10 +117,11 @@ class Hull {
 	}
 
 	addAll(nodes) {
+		nodes = nodes.slice().sort((a,b)=>(b.size - a.size));
 		console.log('nodes\n' + nodes.map(n=>('\t' + n.name + ": new Node(" + n.x + ",\t" +
 			n.y + ",\t'" +
 			n.name + "',\t" +
-			n.size + ')')).join('\n'))
+			n.size + ')')).join('\n'));
 		for (var i = 0; i < nodes.length; i++) {
 			this.add(nodes[i]);
 		}
@@ -127,8 +135,8 @@ function isNodeAinNodeB(inside, outside) {
 
 
 function isOutsideNew(node, z, a, b) {
-	var debug = console.debug;
-	debug('isOutsideNew', node.name, z.name, a.name, b.name);
+	var debug = console.log;
+	debug('is', a.name, node.name, 'in between', z.name, a.name, 'and', a.name, b.name);
 	if (node === a) {
 		debug('isOutsideNew node === a', false);
 		return false;

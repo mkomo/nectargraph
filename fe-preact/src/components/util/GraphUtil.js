@@ -65,41 +65,33 @@ class Hull {
 						this.seq.splice(i+1, 0, node);
 					}
 				} else if (isOutsideNew(node, z, a, b)) {
-					// this is necessary and sufficient
+					// TODO remove this and count check below
 					let nodesToRemoveForward = 0;
 
 					//TODO remove back? this didn't seem necessary? think abt that edge case
+					debug('checking if is pimple');
+					if (isPimple(node, a, b)) {
+						debug('+    splice pimple', node.name, 'at', i+1, 'in', ...this.seq.map(n=>n.name))
+						this.seq.splice(i + 1, 0, node, a);
+					} else {
+						debug('+    splice', node.name, 'at', i+1, 'in', ...this.seq.map(n=>n.name))
+						this.seq.splice(i + 1, 0, node);
+						while (isOutsideNew(
+								this.seq[this.ind(i+3)],
+								a,
+								node,
+								this.seq[this.ind(i+2)])) {
+							let ind = this.ind(i+2);
+							debug('removing', ind, this.seq[ind].name, 'from [', ...this.seq.map(n=>n.name), '] with i @', i)
+							this.seq.splice(ind, 1);
 
-					let newi = i;
-					// if (isOutsideNew(a, a, node, b)) {
-					// 	debug('+    splice pimple', node.name, 'at', i+1, 'in', ...this.seq.map(n=>n.name))
-					// 	this.seq.splice(newi + 1, 0, node, a);
-					// }
-					debug('adding, but first removing')
-					while (isOutsideNew(
-							...this.subseq(i + nodesToRemoveForward + 2, 1),
-							a,
-							node,
-							...this.subseq(i + nodesToRemoveForward + 1, 1))) {
-						nodesToRemoveForward++
-						if (nodesToRemoveForward > 10) {
-							debug('you fucked up, forward');
-							break;
+							nodesToRemoveForward++;
+							if (nodesToRemoveForward > 10) {
+								debug('you fucked up, forward');
+								break;
+							}
 						}
 					}
-					debug('removing forward', nodesToRemoveForward);
-					for (let j = 0; j < (nodesToRemoveForward); j++) {
-						let rempos = (newi + this.seq.length + 1) % this.seq.length;
-						debug('removing', rempos, this.seq[rempos].name, 'from [', ...this.seq.map(n=>n.name), '] with i @', i)
-						this.seq.splice(rempos, 1);
-						if (rempos <= i) {
-							newi--;
-						}
-					}
-					i = newi;
-					debug('+    splice', node.name, 'at', newi+1, 'in', ...this.seq.map(n=>n.name))
-					this.seq.splice(newi+1, 0, node);
-
 				}
 			}
 
@@ -110,10 +102,14 @@ class Hull {
 	subseq(start, length) {
 		let subseq = [];
 		for (let offset = 0; offset < length; offset++) {
-			let index = ((start % this.seq.length) + this.seq.length + offset) % this.seq.length;
+			let index = this.ind(start + offset);
 			subseq.push(this.seq[index]);
 		}
 		return subseq;
+	}
+
+	ind(i) {
+		return ((i % this.seq.length) + this.seq.length) % this.seq.length;
 	}
 
 	addAll(nodes) {
@@ -133,6 +129,12 @@ function isNodeAinNodeB(inside, outside) {
 	return inside.size + Math.sqrt(Math.pow(offset[0], 2) + Math.pow(offset[1], 2)) <= outside.size;
 }
 
+function isPimple(node, a, b){
+	// from a to node to a before node b
+
+	// assume a!==node and a-node is outside a-b
+	return !isOutsideNew(b, a, node, a); 
+}
 
 function isOutsideNew(node, z, a, b) {
 	var debug = console.log;

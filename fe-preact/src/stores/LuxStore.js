@@ -129,6 +129,9 @@ LuxComponent.extend = function(Proto) {
 				this.store.unregister(this);
 			}
 		}
+		bindAll(methodNames) {
+			methodNames.forEach(m=>this[m] = this[m].bind(this));
+		}
 	}
 }
 
@@ -244,7 +247,7 @@ var Lux = {
 		//either no keys or item not found in cache
 		var p = new Proto(props);
 		__cache.store(Proto, p);
-		//TODO separate isLoaded isErrored isSaved into some separate encapsulated property like athlete.lux.isLoaded or something
+		//TODO separate isLoaded isErrored isSaved into some separate encapsulated property like store.lux.isLoaded or something
 		p.setState({isLoaded : true});
 		return p;
 	},

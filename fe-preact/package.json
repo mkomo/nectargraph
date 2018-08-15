@@ -9,6 +9,7 @@
     "build": "cross-env NODE_ENV=production webpack --progress",
     "prebuild": "mkdirp build && ncp src/assets build/assets",
     "test": "npm run -s lint && jest --coverage",
+    "jest": "jest",
     "test:watch": "npm run -s test -- --watch",
     "lint": "eslint src test"
   },
@@ -29,6 +30,9 @@
     ],
     "moduleDirectories": [
       "node_modules"
+    ],
+    "modulePaths": [
+      "<rootDir>/src"
     ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
@@ -54,6 +58,7 @@
     "babel-register": "^6.24.0",
     "babel-runtime": "^6.11.6",
     "chai": "^4.0.2",
+    "chai-almost": "^1.0.1",
     "copy-webpack-plugin": "^4.0.1",
     "core-js": "^2.4.1",
     "cross-env": "^5.0.1",

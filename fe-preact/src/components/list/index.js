@@ -67,6 +67,7 @@ export default class List extends Component {
 								this.state.deleteAction
 								? <Button className={style.list_entry_action} color="link"
 										onClick={e=>{
+											//todo add confirm here?
 											items[key].delete();
 											this.setState({items : this.fetchItems(this.state)})
 										}}>

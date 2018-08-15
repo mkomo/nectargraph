@@ -9,3 +9,12 @@ options.functions = false;
 chai.use(assertJsx);
 
 global.sleep = ms => new Promise( resolve => setTimeout(resolve, ms) );
+
+window.crypto = {
+	getRandomValues: function() {
+		return [Math.floor(Math.random() * 256)];
+	}
+}
+
+console.log = function(){};
+console.debug = console.log;
